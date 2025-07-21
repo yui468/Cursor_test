@@ -68,3 +68,56 @@ web_app/
 - `npm run build` - プロダクションビルドの作成
 - `npm run start` - プロダクションサーバーの起動
 - `npm run lint` - ESLintによるコード検証
+
+## GitHub連携手順
+
+1. GitHubでの準備
+   - GitHubアカウントにログイン
+   - 新しいリポジトリを作成
+   - リポジトリ名: `web_app`（任意）
+   - 説明を追加（オプション）
+   - プライベート/パブリックを選択
+
+2. ローカルリポジトリの設定
+   ```bash
+   # Gitリポジトリの初期化（済）
+   git init
+
+   # 変更をステージングに追加
+   git add .
+
+   # 最初のコミット
+   git commit -m "Initial commit"
+
+   # リモートリポジトリの追加
+   git remote add origin https://github.com/あなたのユーザー名/web_app.git
+
+   # メインブランチの名前を設定（必要な場合）
+   git branch -M main
+
+   # 変更をプッシュ
+   git push -u origin main
+   ```
+
+3. 認証設定
+   - GitHubでPersonal Access Tokenを生成
+     1. GitHubの設定 → Developer settings → Personal access tokens → Tokens (classic)
+     2. 「Generate new token」をクリック
+     3. 必要な権限を選択（repo, workflow, admin:repo_hook）
+     4. トークンを生成し、安全な場所に保存
+
+4. 開発ワークフロー
+   ```bash
+   # 最新の変更を取得
+   git pull origin main
+
+   # 新しいブランチを作成
+   git checkout -b 機能名
+
+   # 変更を追加とコミット
+   git add .
+   git commit -m "変更の説明"
+
+   # 変更をプッシュ
+   git push origin 機能名
+   ```
