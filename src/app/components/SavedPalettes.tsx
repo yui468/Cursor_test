@@ -103,11 +103,11 @@ export default function SavedPalettes({ palettes, onDelete }: SavedPalettesProps
 
             {/* カラー表示 */}
             <div className="p-4">
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="flex flex-wrap gap-1 mb-4">
                 {palette.map((color, colorIndex) => (
                   <div
                     key={colorIndex}
-                    className="aspect-square rounded-lg shadow-sm cursor-pointer hover:scale-105 transition-transform duration-200"
+                    className="w-8 h-8 rounded-lg shadow-sm cursor-pointer hover:scale-110 transition-transform duration-200 flex-shrink-0"
                     style={{ backgroundColor: color }}
                     title={color}
                     onClick={() => {
