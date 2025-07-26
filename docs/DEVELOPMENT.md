@@ -99,7 +99,7 @@ main (production)
 
 #### 形式
 ```
-<type>(<scope>): <subject>
+<type>(<scope>): <日本語の説明>
 
 <body>
 
@@ -107,23 +107,48 @@ main (production)
 ```
 
 #### タイプ
-- `feat`: 新機能
+- `feat`: 新機能追加
 - `fix`: バグ修正
 - `docs`: ドキュメント更新
 - `style`: コードスタイル修正（機能に影響なし）
 - `refactor`: リファクタリング
 - `test`: テスト追加・修正
 - `chore`: ビルドプロセス・ツール修正
+- `perf`: パフォーマンス改善
+- `ci`: CI/CD設定変更
+
+#### スコープ例
+- `frontend`: フロントエンド関連
+- `backend`: バックエンド関連
+- `deploy`: デプロイ関連
+- `config`: 設定関連
+- `deps`: 依存関係関連
 
 #### 例
 ```
-feat(user): add user authentication system
+feat(frontend): ユーザー認証システムを追加
 
-- Implement JWT token authentication
-- Add login/logout endpoints
-- Create user registration form
+- JWTトークン認証を実装
+- ログイン・ログアウトエンドポイントを追加
+- ユーザー登録フォームを作成
 
 Closes #123
+```
+
+```
+fix(backend): ログイン時のバリデーションエラーを修正
+
+- メールアドレスの形式チェックを改善
+- エラーメッセージを日本語化
+
+Fixes #456
+```
+
+```
+docs: 開発ルールドキュメントを更新
+
+- コミットメッセージ規約を日本語化
+- コーディング規約を詳細化
 ```
 
 ## レビュープロセス

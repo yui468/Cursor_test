@@ -48,7 +48,7 @@ git checkout -b feature/your-feature-name
 git add .
 
 # コミットメッセージ規約に従ってコミット
-git commit -m "feat(user): add user registration functionality"
+git commit -m "feat(frontend): ユーザー登録機能を追加"
 ```
 
 ### 4. プッシュとプルリクエスト
@@ -85,6 +85,13 @@ GitHubでプルリクエストを作成し、レビューを依頼してくだ�
 - [ ] テストが通ることを確認した
 - [ ] ドキュメントを更新した
 - [ ] セキュリティの考慮をした
+
+## コミットメッセージ例
+```
+feat(frontend): ユーザー管理画面を追加
+fix(backend): APIレスポンスの形式を修正
+docs: READMEを更新
+```
 ```
 
 ## レビュープロセス
