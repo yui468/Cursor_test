@@ -37,6 +37,10 @@ export default function ColorPalette({ colors }: ColorPaletteProps) {
     return color;
   };
 
+  if (colors.length === 0) {
+    return <div>色配列が空です</div>;
+  }
+
   return (
     <div className="space-y-4">
       {/* 色を横並びで表示 */}
@@ -46,22 +50,51 @@ export default function ColorPalette({ colors }: ColorPaletteProps) {
           return (
             <div
               key={index}
-              className="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex-shrink-0"
-              style={{ minWidth: '120px', maxWidth: '200px' }}
+              style={{ 
+                minWidth: '120px', 
+                maxWidth: '200px',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                transition: 'all 0.3s',
+                flexShrink: 0,
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+              }}
             >
               {/* カラー表示 */}
               <div
-                className="h-24 w-full relative cursor-pointer"
-                style={{ backgroundColor: validColor }}
+                style={{ 
+                  backgroundColor: validColor,
+                  height: '96px',
+                  width: '100%',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  border: `2px solid ${validColor}` // カラーに合わせた境界線
+                }}
                 onClick={() => copyToClipboard(validColor, index)}
-              >
-                {/* ホバー時のオーバーレイ */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="bg-white bg-opacity-90 rounded-lg px-2 py-1 text-xs font-medium text-slate-800">
-                      {copiedIndex === index ? 'コピー！' : 'クリック'}
-                    </div>
-                  </div>
+                title={`Color: ${validColor}`}
+                              >
+                <div style={{  
+                  fontSize: '12px', 
+                  color: 'white', 
+                  textShadow: '1px 1px 2px black', 
+                  fontWeight: 'bold',
+                  background: 'rgba(0,0,0,0.3)',
+                  padding: '4px 8px',
+                  borderRadius: '4px'
+                }}>
+                  {validColor}
                 </div>
               </div>
 

@@ -17,7 +17,6 @@ export default function Home() {
   // パレットを生成する関数
   const generatePalette = () => {
     const newPalette = generateColorPalette(currentColor);
-    console.log('生成されたパレット:', newPalette); // デバッグ出力
     setPalette(newPalette);
   };
 
@@ -61,6 +60,15 @@ export default function Home() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
               >
                 パレットを生成
+              </button>
+              <button
+                onClick={() => {
+                  const testColors = ['#3B82F6', '#c47d09', '#523bf6', '#3bdff6', '#f63b82', '#f6b23b'];
+                  setPalette(testColors);
+                }}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+              >
+                テストパレット
               </button>
               {palette.length > 0 && (
                 <button
