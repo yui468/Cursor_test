@@ -10,6 +10,8 @@ project-root/
 ├── backend/           # Java + Spring Boot
 ├── shared/            # 共有型定義など
 └── docs/              # ドキュメント
+    ├── DEVELOPMENT.md # 開発ルール・ガイドライン
+    └── CONTRIBUTING.md # コントリビューションガイド
 ```
 
 ## セットアップ
@@ -83,3 +85,10 @@ cd frontend && npm run dev
 - **ORM**: Spring Data JPA
 - **Build Tool**: Maven
 - **API Documentation**: Swagger/OpenAPI 3.0
+
+## 開発ルール・ガイドライン
+
+開発ルールとガイドラインは以下のドキュメントを参照してください：
+
+- **[開発ルール・ガイドライン](docs/DEVELOPMENT.md)** - コーディング規約、Git運用、テスト方針など
+- **[コントリビューションガイド](docs/CONTRIBUTING.md)** - 開発フロー、プルリクエスト、レビュープロセスなど
