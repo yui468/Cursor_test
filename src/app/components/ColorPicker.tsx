@@ -120,6 +120,7 @@ function hexToRgb(hex: string): number[] | null {
   ] : null;
 }
 
+// HEXカラーをHSL（色相・彩度・輝度）に変換する関数
 function hexToHsl(hex: string): string[] | null {
   const rgb = hexToRgb(hex);
   if (!rgb) return null;
@@ -130,7 +131,8 @@ function hexToHsl(hex: string): string[] | null {
   
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h = 0, s = 0, l = (max + min) / 2;
+  let h = 0, s = 0;
+  const l = (max + min) / 2; // ← let→constに修正済み
   
   if (max !== min) {
     const d = max - min;

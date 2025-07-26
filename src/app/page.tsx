@@ -5,16 +5,22 @@ import ColorPicker from './components/ColorPicker';
 import ColorPalette from './components/ColorPalette';
 import SavedPalettes from './components/SavedPalettes';
 
+// Homeコンポーネント：カラーパレット作成ツールのメイン画面
 export default function Home() {
+  // 現在選択中の色
   const [currentColor, setCurrentColor] = useState('#3B82F6');
+  // 生成されたパレット（色の配列）
   const [palette, setPalette] = useState<string[]>([]);
+  // 保存されたパレットのリスト
   const [savedPalettes, setSavedPalettes] = useState<string[][]>([]);
 
+  // パレットを生成する関数
   const generatePalette = () => {
     const newPalette = generateColorPalette(currentColor);
     setPalette(newPalette);
   };
 
+  // パレットを保存する関数
   const savePalette = () => {
     if (palette.length > 0) {
       setSavedPalettes(prev => [...prev, [...palette]]);
@@ -22,6 +28,7 @@ export default function Home() {
     }
   };
 
+  // 保存済みパレットを削除する関数
   const deletePalette = (index: number) => {
     setSavedPalettes(prev => prev.filter((_, i) => i !== index));
   };
@@ -97,19 +104,20 @@ export default function Home() {
 }
 
 // カラーパレット生成関数
+// ベースカラーから補色・類似色・トライアドを自動生成
 function generateColorPalette(baseColor: string): string[] {
   const colors = [baseColor];
   
-  // 補色
+  // 補色を追加
   const complementary = getComplementaryColor(baseColor);
   colors.push(complementary);
   
-  // 類似色（30度ずつ）
+  // 類似色（30度ずつ）を追加
   const analogous1 = getAnalogousColor(baseColor, 30);
   const analogous2 = getAnalogousColor(baseColor, -30);
   colors.push(analogous1, analogous2);
   
-  // トライアド（120度ずつ）
+  // トライアド（120度ずつ）を追加
   const triadic1 = getTriadicColor(baseColor, 120);
   const triadic2 = getTriadicColor(baseColor, 240);
   colors.push(triadic1, triadic2);
@@ -117,6 +125,7 @@ function generateColorPalette(baseColor: string): string[] {
   return colors.slice(0, 6); // 最大6色まで
 }
 
+// 補色を取得する関数
 function getComplementaryColor(hex: string): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
@@ -130,6 +139,7 @@ function getComplementaryColor(hex: string): string {
   return rgbToHex(complementary.r, complementary.g, complementary.b);
 }
 
+// 類似色を取得する関数
 function getAnalogousColor(hex: string, angle: number): string {
   const hsl = hexToHsl(hex);
   if (!hsl) return hex;
@@ -138,6 +148,7 @@ function getAnalogousColor(hex: string, angle: number): string {
   return hslToHex(newHue, hsl.s, hsl.l);
 }
 
+// トライアドカラーを取得する関数
 function getTriadicColor(hex: string, angle: number): string {
   const hsl = hexToHsl(hex);
   if (!hsl) return hex;
@@ -146,6 +157,7 @@ function getTriadicColor(hex: string, angle: number): string {
   return hslToHex(newHue, hsl.s, hsl.l);
 }
 
+// HEXカラーをRGBオブジェクトに変換
 function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
@@ -155,10 +167,12 @@ function hexToRgb(hex: string) {
   } : null;
 }
 
+// RGB値をHEXカラーに変換
 function rgbToHex(r: number, g: number, b: number): string {
   return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
+// HEXカラーをHSLオブジェクトに変換
 function hexToHsl(hex: string) {
   const rgb = hexToRgb(hex);
   if (!rgb) return null;
@@ -169,7 +183,8 @@ function hexToHsl(hex: string) {
   
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h = 0, s = 0, l = (max + min) / 2;
+  let h = 0, s = 0;
+  const l = (max + min) / 2; // ← let→constに修正済み
   
   if (max !== min) {
     const d = max - min;
@@ -186,6 +201,7 @@ function hexToHsl(hex: string) {
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
+// HSL値をHEXカラーに変換
 function hslToHex(h: number, s: number, l: number): string {
   h /= 360;
   s /= 100;
