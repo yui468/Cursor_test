@@ -1,3 +1,5 @@
+// カラーパレット作成アプリのメインページ
+// 色の選択・パレット生成・保存・表示など全体の画面構成を管理するファイル
 'use client';
 
 import { useState } from 'react';
@@ -51,9 +53,9 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
               カラー選択
             </h2>
-            <ColorPicker 
-              currentColor={currentColor} 
-              onColorChange={setCurrentColor} 
+            <ColorPicker
+              currentColor={currentColor}
+              onColorChange={setCurrentColor}
             />
             <div className="mt-6 space-y-4">
               <button
@@ -93,9 +95,9 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
               保存されたパレット
             </h2>
-            <SavedPalettes 
-              palettes={savedPalettes} 
-              onDelete={deletePalette} 
+            <SavedPalettes
+              palettes={savedPalettes}
+              onDelete={deletePalette}
             />
           </div>
         )}
@@ -108,21 +110,21 @@ export default function Home() {
 // ベースカラーから補色・類似色・トライアドを自動生成
 function generateColorPalette(baseColor: string): string[] {
   const colors = [baseColor];
-  
+
   // 補色を追加
   const complementary = getComplementaryColor(baseColor);
   colors.push(complementary);
-  
+
   // 類似色（30度ずつ）を追加
   const analogous1 = getAnalogousColor(baseColor, 30);
   const analogous2 = getAnalogousColor(baseColor, -30);
   colors.push(analogous1, analogous2);
-  
+
   // トライアド（120度ずつ）を追加
   const triadic1 = getTriadicColor(baseColor, 120);
   const triadic2 = getTriadicColor(baseColor, 240);
   colors.push(triadic1, triadic2);
-  
+
   return colors.slice(0, 6); // 最大6色まで
 }
 
@@ -130,13 +132,13 @@ function generateColorPalette(baseColor: string): string[] {
 function getComplementaryColor(hex: string): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
-  
+
   const complementary = {
     r: Math.max(0, Math.min(255, 255 - rgb.r)),
     g: Math.max(0, Math.min(255, 255 - rgb.g)),
     b: Math.max(0, Math.min(255, 255 - rgb.b))
   };
-  
+
   const result = rgbToHex(complementary.r, complementary.g, complementary.b);
   return result || hex; // 変換失敗時は元の色を返す
 }
@@ -145,7 +147,7 @@ function getComplementaryColor(hex: string): string {
 function getAnalogousColor(hex: string, angle: number): string {
   const hsl = hexToHsl(hex);
   if (!hsl) return hex;
-  
+
   const newHue = (hsl.h + angle + 360) % 360;
   const result = hslToHex(newHue, hsl.s, hsl.l);
   return result || hex; // 変換失敗時は元の色を返す
@@ -155,7 +157,7 @@ function getAnalogousColor(hex: string, angle: number): string {
 function getTriadicColor(hex: string, angle: number): string {
   const hsl = hexToHsl(hex);
   if (!hsl) return hex;
-  
+
   const newHue = (hsl.h + angle + 360) % 360;
   const result = hslToHex(newHue, hsl.s, hsl.l);
   return result || hex; // 変換失敗時は元の色を返す
@@ -177,7 +179,7 @@ function rgbToHex(r: number, g: number, b: number): string {
   const clampR = Math.max(0, Math.min(255, Math.round(r)));
   const clampG = Math.max(0, Math.min(255, Math.round(g)));
   const clampB = Math.max(0, Math.min(255, Math.round(b)));
-  
+
   const hex = ((1 << 24) + (clampR << 16) + (clampG << 8) + clampB).toString(16).slice(1);
   return `#${hex}`;
 }
@@ -186,20 +188,20 @@ function rgbToHex(r: number, g: number, b: number): string {
 function hexToHsl(hex: string) {
   const rgb = hexToRgb(hex);
   if (!rgb) return null;
-  
+
   const r = rgb.r / 255;
   const g = rgb.g / 255;
   const b = rgb.b / 255;
-  
+
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   let h = 0, s = 0;
   const l = (max + min) / 2; // ← let→constに修正済み
-  
+
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    
+
     switch (max) {
       case r: h = (g - b) / d + (g < b ? 6 : 0); break;
       case g: h = (b - r) / d + 2; break;
@@ -207,7 +209,7 @@ function hexToHsl(hex: string) {
     }
     h /= 6;
   }
-  
+
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
@@ -217,33 +219,33 @@ function hslToHex(h: number, s: number, l: number): string {
   h = ((h % 360) + 360) % 360; // 0-360の範囲に
   s = Math.max(0, Math.min(100, s)); // 0-100の範囲に
   l = Math.max(0, Math.min(100, l)); // 0-100の範囲に
-  
+
   h /= 360;
   s /= 100;
   l /= 100;
-  
+
   const c = (1 - Math.abs(2 * l - 1)) * s;
   const x = c * (1 - Math.abs((h * 6) % 2 - 1));
   const m = l - c / 2;
   let r = 0, g = 0, b = 0;
-  
-  if (0 <= h && h < 1/6) {
+
+  if (0 <= h && h < 1 / 6) {
     r = c; g = x; b = 0;
-  } else if (1/6 <= h && h < 1/3) {
+  } else if (1 / 6 <= h && h < 1 / 3) {
     r = x; g = c; b = 0;
-  } else if (1/3 <= h && h < 1/2) {
+  } else if (1 / 3 <= h && h < 1 / 2) {
     r = 0; g = c; b = x;
-  } else if (1/2 <= h && h < 2/3) {
+  } else if (1 / 2 <= h && h < 2 / 3) {
     r = 0; g = x; b = c;
-  } else if (2/3 <= h && h < 5/6) {
+  } else if (2 / 3 <= h && h < 5 / 6) {
     r = x; g = 0; b = c;
-  } else if (5/6 <= h && h <= 1) {
+  } else if (5 / 6 <= h && h <= 1) {
     r = c; g = 0; b = x;
   }
-  
+
   const rHex = Math.round((r + m) * 255).toString(16).padStart(2, '0');
   const gHex = Math.round((g + m) * 255).toString(16).padStart(2, '0');
   const bHex = Math.round((b + m) * 255).toString(16).padStart(2, '0');
-  
+
   return `#${rHex}${gHex}${bHex}`;
 }

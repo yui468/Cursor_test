@@ -1,3 +1,5 @@
+// 保存されたカラーパレットを一覧表示・削除するReactコンポーネント
+// ユーザーが保存したパレットを管理するためのファイル
 'use client';
 
 import { useState } from 'react';

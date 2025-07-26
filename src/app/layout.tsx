@@ -1,3 +1,5 @@
+// アプリ全体のレイアウトを定義するファイル
+// 共通のレイアウトやテーマを適用するためのファイル
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";

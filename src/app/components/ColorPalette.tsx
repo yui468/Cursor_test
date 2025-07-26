@@ -1,3 +1,5 @@
+// カラーパレットを表示するReactコンポーネント
+// 生成された色の配列を横一列で隙間なく表示するためのファイル
 'use client';
 
 import { useState } from 'react';
