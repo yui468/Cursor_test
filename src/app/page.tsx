@@ -17,6 +17,7 @@ export default function Home() {
   // パレットを生成する関数
   const generatePalette = () => {
     const newPalette = generateColorPalette(currentColor);
+    console.log('生成されたパレット:', newPalette); // デバッグ出力
     setPalette(newPalette);
   };
 
@@ -131,12 +132,13 @@ function getComplementaryColor(hex: string): string {
   if (!rgb) return hex;
   
   const complementary = {
-    r: 255 - rgb.r,
-    g: 255 - rgb.g,
-    b: 255 - rgb.b
+    r: Math.max(0, Math.min(255, 255 - rgb.r)),
+    g: Math.max(0, Math.min(255, 255 - rgb.g)),
+    b: Math.max(0, Math.min(255, 255 - rgb.b))
   };
   
-  return rgbToHex(complementary.r, complementary.g, complementary.b);
+  const result = rgbToHex(complementary.r, complementary.g, complementary.b);
+  return result || hex; // 変換失敗時は元の色を返す
 }
 
 // 類似色を取得する関数
@@ -145,7 +147,8 @@ function getAnalogousColor(hex: string, angle: number): string {
   if (!hsl) return hex;
   
   const newHue = (hsl.h + angle + 360) % 360;
-  return hslToHex(newHue, hsl.s, hsl.l);
+  const result = hslToHex(newHue, hsl.s, hsl.l);
+  return result || hex; // 変換失敗時は元の色を返す
 }
 
 // トライアドカラーを取得する関数
@@ -154,7 +157,8 @@ function getTriadicColor(hex: string, angle: number): string {
   if (!hsl) return hex;
   
   const newHue = (hsl.h + angle + 360) % 360;
-  return hslToHex(newHue, hsl.s, hsl.l);
+  const result = hslToHex(newHue, hsl.s, hsl.l);
+  return result || hex; // 変換失敗時は元の色を返す
 }
 
 // HEXカラーをRGBオブジェクトに変換
@@ -169,7 +173,13 @@ function hexToRgb(hex: string) {
 
 // RGB値をHEXカラーに変換
 function rgbToHex(r: number, g: number, b: number): string {
-  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  // 値の範囲を0-255に制限
+  const clampR = Math.max(0, Math.min(255, Math.round(r)));
+  const clampG = Math.max(0, Math.min(255, Math.round(g)));
+  const clampB = Math.max(0, Math.min(255, Math.round(b)));
+  
+  const hex = ((1 << 24) + (clampR << 16) + (clampG << 8) + clampB).toString(16).slice(1);
+  return `#${hex}`;
 }
 
 // HEXカラーをHSLオブジェクトに変換
@@ -203,6 +213,11 @@ function hexToHsl(hex: string) {
 
 // HSL値をHEXカラーに変換
 function hslToHex(h: number, s: number, l: number): string {
+  // 値の範囲を制限
+  h = ((h % 360) + 360) % 360; // 0-360の範囲に
+  s = Math.max(0, Math.min(100, s)); // 0-100の範囲に
+  l = Math.max(0, Math.min(100, l)); // 0-100の範囲に
+  
   h /= 360;
   s /= 100;
   l /= 100;
