@@ -35,6 +35,8 @@ cd backend
 
 H2データベースコンソール: http://localhost:8080/h2-console
 
+**Swagger API ドキュメント**: http://localhost:8080/swagger-ui.html
+
 ## 開発
 
 ### フロントエンド開発
@@ -51,6 +53,7 @@ H2データベースコンソール: http://localhost:8080/h2-console
 - Spring Data JPA
 - H2 Database (開発用)
 - Spring Validation
+- **Swagger/OpenAPI 3.0** - API ドキュメント自動生成
 
 ## スクリプト
 
@@ -79,3 +82,4 @@ cd frontend && npm run dev
 - **Database**: H2 (開発用)
 - **ORM**: Spring Data JPA
 - **Build Tool**: Maven
+- **API Documentation**: Swagger/OpenAPI 3.0
