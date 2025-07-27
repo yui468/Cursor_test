@@ -132,7 +132,7 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
               パレットプレビュー <span className="text-xl">🖼️</span>
             </h2>
-            <ColorPalette palette={palette} />
+            <ColorPalette colors={palette} />
           </div>
         </div>
 
