@@ -1,0 +1,21 @@
+# Backend files
+backend/
+shared/
+docs/
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Dependencies (will be installed in frontend directory)
+node_modules/
