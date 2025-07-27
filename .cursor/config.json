@@ -5,7 +5,9 @@
             "mvn -N wrapper",
             "mvn wrapper:wrapper",
             "mvn",
-            "mvn clean install"
+            "mvn clean install",
+            "chmod +x backend/mvnw",
+            "chmod +x /app/mvnw"
         ]
     },
     "protections": {
@@ -13,5 +15,20 @@
         "mcpTools": false,
         "dotfile": false,
         "externalFile": false
+    },
+    "autoEdit": {
+        "enabled": true,
+        "patterns": [
+            {
+                "file": "backend/Dockerfile",
+                "find": "COPY pom.xml mvnw .mvn /app/",
+                "replace": "COPY pom.xml mvnw mvnw.cmd .mvn /app/"
+            },
+            {
+                "file": "backend/Dockerfile",
+                "find": "RUN ./mvnw dependency:go-offline",
+                "replace": "RUN chmod +x /app/mvnw\nRUN ./mvnw dependency:go-offline"
+            }
+        ]
     }
 }
