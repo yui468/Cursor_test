@@ -4,7 +4,8 @@ FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
 # 依存関係のキャッシュ
-COPY pom.xml mvnw mvnw.cmd .mvn /app/
+COPY pom.xml mvnw mvnw.cmd /app/
+COPY .mvn /app/.mvn
 RUN chmod +x /app/mvnw
 RUN ./mvnw dependency:go-offline
 
