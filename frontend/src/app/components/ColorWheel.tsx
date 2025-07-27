@@ -87,7 +87,7 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
       ctx.textBaseline = 'middle';
       ctx.fillText((index + 1).toString(), x, y);
     });
-  }, [colorMode, brightness, colorPoints]);
+  }, [colorMode, brightness, colorPoints, centerX, centerY]);
 
   // 配色パターンを適用
   useEffect(() => {
@@ -253,7 +253,8 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
     
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
     
     if (max !== min) {
       const d = max - min;
