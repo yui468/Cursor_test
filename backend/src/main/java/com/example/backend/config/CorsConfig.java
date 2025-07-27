@@ -13,7 +13,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("https://cursor-test-jhiaugvzn-yui468s-projects.vercel.app")
+                        .allowedOriginPatterns("https://cursor-test-*.vercel.app")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
             }
