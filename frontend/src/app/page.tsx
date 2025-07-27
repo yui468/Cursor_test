@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import ColorPicker from './components/ColorPicker';
+import ColorWheel from './components/ColorWheel';
 import ColorPalette from './components/ColorPalette';
 import SavedPalettes from './components/SavedPalettes';
 
@@ -15,6 +16,8 @@ export default function Home() {
   const [palette, setPalette] = useState<string[]>([]);
   // 保存されたパレットのリスト
   const [savedPalettes, setSavedPalettes] = useState<string[][]>([]);
+  // カラーホイールモードの切り替え
+  const [useColorWheel, setUseColorWheel] = useState(false);
 
   // パレットを生成する関数（API呼び出し版）
   const generatePalette = async () => {
@@ -72,29 +75,60 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
-              カラー選択 <span className="text-xl">🎯</span>
-            </h2>
-            <ColorPicker
-              currentColor={currentColor}
-              onColorChange={setCurrentColor}
-            />
-            <div className="mt-6 space-y-4">
-              <button
-                onClick={generatePalette}
-                className="w-full bg-gradient-to-r from-blue-500 via-pink-400 to-yellow-400 hover:from-blue-600 hover:via-pink-500 hover:to-yellow-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg scale-100 hover:scale-105 animate-pulse"
-              >
-                パレットを生成 ✨
-              </button>
-              {palette.length > 0 && (
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                カラー選択 <span className="text-xl">🎯</span>
+              </h2>
+              <div className="flex space-x-2">
                 <button
-                  onClick={savePalette}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+                  onClick={() => setUseColorWheel(false)}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                    !useColorWheel
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                  }`}
                 >
-                  パレットを保存
+                  シンプル
                 </button>
-              )}
+                <button
+                  onClick={() => setUseColorWheel(true)}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                    useColorWheel
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  カラーホイール
+                </button>
+              </div>
             </div>
+            
+            {useColorWheel ? (
+              <ColorWheel onPaletteChange={setPalette} />
+            ) : (
+              <>
+                <ColorPicker
+                  currentColor={currentColor}
+                  onColorChange={setCurrentColor}
+                />
+                <div className="mt-6 space-y-4">
+                  <button
+                    onClick={generatePalette}
+                    className="w-full bg-gradient-to-r from-blue-500 via-pink-400 to-yellow-400 hover:from-blue-600 hover:via-pink-500 hover:to-yellow-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg scale-100 hover:scale-105 animate-pulse"
+                  >
+                    パレットを生成 ✨
+                  </button>
+                  {palette.length > 0 && (
+                    <button
+                      onClick={savePalette}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+                    >
+                      パレットを保存
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
