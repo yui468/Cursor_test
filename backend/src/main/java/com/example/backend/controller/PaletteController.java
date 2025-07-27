@@ -14,22 +14,45 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @RequestMapping("/api/palette")
 public class PaletteController {
     @Operation(summary = "カラーパレットを生成",
-            description = "baseColor（16進カラーコード）を元に、補色・類似色・トライアドなど色理論に基づいたパレットを返します。",
-            parameters = {@Parameter(name = "baseColor", description = "基準となる色（例: #3B82F6）",
-                    required = true)},
+            description = "baseColor（16進カラーコード）を元に、補色・類似色・トライアドなど色理論に基づいたパレットを返します。typesで生成したい色理論（complementary,analogous,triadic）をカンマ区切りで指定可能。angleで角度指定も可能。",
+            parameters = {
+                    @Parameter(name = "baseColor", description = "基準となる色（例: #3B82F6）",
+                            required = true),
+                    @Parameter(name = "types",
+                            description = "生成したい色理論（例: complementary,analogous,triadic）",
+                            required = false),
+                    @Parameter(name = "angle", description = "類似色・トライアドの角度（例: 30, 45, 120）",
+                            required = false)},
             responses = {@ApiResponse(responseCode = "200", description = "生成されたカラーパレット",
                     content = @Content(schema = @Schema(
                             example = "{\"palette\":[\"#3B82F6\",\"#C47D09\",\"#3BF6B8\",\"#3B5AF6\",\"#F63B82\",\"#82F63B\"]}")))})
     @GetMapping("/generate")
-    public Map<String, Object> generatePalette(@RequestParam String baseColor) {
-        // 色理論に基づいてパレットを生成（例：補色・類似色・トライアド）
+    public Map<String, Object> generatePalette(@RequestParam String baseColor,
+            @RequestParam(required = false) String types,
+            @RequestParam(required = false, defaultValue = "30") int angle) {
         List<String> palette = new ArrayList<>();
         palette.add(baseColor);
-        palette.add(getComplementaryColor(baseColor));
-        palette.add(getAnalogousColor(baseColor, 30));
-        palette.add(getAnalogousColor(baseColor, -30));
-        palette.add(getTriadicColor(baseColor, 120));
-        palette.add(getTriadicColor(baseColor, -120));
+        Set<String> typeSet = new HashSet<>();
+        if (types != null && !types.isEmpty()) {
+            for (String t : types.split(",")) {
+                typeSet.add(t.trim().toLowerCase());
+            }
+        } else {
+            typeSet.add("complementary");
+            typeSet.add("analogous");
+            typeSet.add("triadic");
+        }
+        if (typeSet.contains("complementary")) {
+            palette.add(getComplementaryColor(baseColor));
+        }
+        if (typeSet.contains("analogous")) {
+            palette.add(getAnalogousColor(baseColor, angle));
+            palette.add(getAnalogousColor(baseColor, -angle));
+        }
+        if (typeSet.contains("triadic")) {
+            palette.add(getTriadicColor(baseColor, 120));
+            palette.add(getTriadicColor(baseColor, -120));
+        }
         Map<String, Object> result = new HashMap<>();
         result.put("palette", palette);
         return result;
