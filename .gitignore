@@ -137,3 +137,7 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# Maven Wrapper JARは必ず管理対象にする
+!.mvn/wrapper/maven-wrapper.jar
+!backend/.mvn/wrapper/maven-wrapper.jar
