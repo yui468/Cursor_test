@@ -1,0 +1,17 @@
+{
+    "autoRun": {
+        "enabled": true,
+        "allowlist": [
+            "mvn -N wrapper",
+            "mvn wrapper:wrapper",
+            "mvn",
+            "mvn clean install"
+        ]
+    },
+    "protections": {
+        "fileDeletion": false,
+        "mcpTools": false,
+        "dotfile": false,
+        "externalFile": false
+    }
+}

@@ -5,6 +5,7 @@ WORKDIR /app
 
 # 依存関係のキャッシュ
 COPY pom.xml mvnw .mvn /app/
+RUN chmod +x /app/mvnw
 RUN ./mvnw dependency:go-offline
 
 # ソースコードコピー＆ビルド
