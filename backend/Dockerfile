@@ -10,8 +10,9 @@ RUN chmod +x /app/mvnw
 RUN ./mvnw dependency:go-offline
 
 # ソースコードコピー＆ビルド
-COPY . /app
-RUN ./mvnw package -DskipTests
+WORKDIR /app
+COPY . .
+RUN chmod +x ./mvnw && ./mvnw package -DskipTests
 
 # 実行用イメージ
 FROM eclipse-temurin:17-jre
