@@ -50,7 +50,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4">
-            Color Palette Creator
+            Color Palette Creator DEMO
           </h1>
           <p className="text-slate-600 dark:text-slate-300 text-lg">
             美しいカラーパレットを作成して、デザインに活用しましょう
