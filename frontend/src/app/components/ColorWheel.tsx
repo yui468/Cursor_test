@@ -141,21 +141,42 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
     onPaletteChange(colors);
   }, [colorPoints, onPaletteChange]);
 
-  // マウスイベント処理
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // 共通の座標計算関数
+  const getCoordinates = (clientX: number, clientY: number) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    
+    const x = clientX - rect.left - centerX;
+    const y = clientY - rect.top - centerY;
+    const distance = Math.sqrt(x * x + y * y);
+    
+    return { x, y, distance };
+  };
+
+  // 色を計算する関数
+  const calculateColor = (x: number, y: number) => {
+    const angle = Math.atan2(y, x) * (180 / Math.PI);
+    const hue = (angle + 360) % 360;
+    const saturation = Math.min((Math.sqrt(x * x + y * y) / radius) * 100, 100);
+    return hslToHex(hue, saturation, brightness);
+  };
+
+  // マウス・タッチイベント処理
+  const handlePointerDown = (e: React.PointerEvent) => {
     if (!isEditMode) return;
     
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    // タッチ操作の場合はデフォルトの動作を防ぐ
+    e.preventDefault();
     
-    const x = e.clientX - rect.left - centerX;
-    const y = e.clientY - rect.top - centerY;
-    const distance = Math.sqrt(x * x + y * y);
+    const coords = getCoordinates(e.clientX, e.clientY);
+    if (!coords) return;
+    
+    const { x, y, distance } = coords;
     
     // 既存のポイントをクリックしたかチェック
     const clickedPoint = colorPoints.find(point => {
       const pointDistance = Math.sqrt((point.x - x) ** 2 + (point.y - y) ** 2);
-      return pointDistance <= 15; // クリック範囲
+      return pointDistance <= 20; // タッチ操作のため範囲を少し広げる
     });
     
     if (clickedPoint) {
@@ -165,10 +186,7 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
     
     // 新しいポイントを追加
     if (distance <= radius) {
-      const angle = Math.atan2(y, x) * (180 / Math.PI);
-      const hue = (angle + 360) % 360;
-      const saturation = Math.min((distance / radius) * 100, 100);
-      const color = hslToHex(hue, saturation, brightness);
+      const color = calculateColor(x, y);
       
       const newPoint: ColorPoint = {
         id: Date.now().toString(),
@@ -183,21 +201,19 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (!draggedPoint || !isEditMode) return;
     
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    // タッチ操作の場合はデフォルトの動作を防ぐ
+    e.preventDefault();
     
-    const x = e.clientX - rect.left - centerX;
-    const y = e.clientY - rect.top - centerY;
-    const distance = Math.sqrt(x * x + y * y);
+    const coords = getCoordinates(e.clientX, e.clientY);
+    if (!coords) return;
+    
+    const { x, y, distance } = coords;
     
     if (distance <= radius) {
-      const angle = Math.atan2(y, x) * (180 / Math.PI);
-      const hue = (angle + 360) % 360;
-      const saturation = Math.min((distance / radius) * 100, 100);
-      const color = hslToHex(hue, saturation, brightness);
+      const color = calculateColor(x, y);
       
       setColorPoints(prev => prev.map(point => 
         point.id === draggedPoint 
@@ -207,7 +223,7 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
     }
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = () => {
     setDraggedPoint(null);
   };
 
@@ -331,39 +347,41 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
           <button
             onClick={() => {
               const newPoints: ColorPoint[] = [];
+              const baseHue = 0; // 基準色（赤）
+              
               switch (harmonyType) {
                 case 'complementary':
                   newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(0, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: 0, y: radius * 0.8, color: hslToHex(180, 100, brightness) }
+                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+                    { id: (Date.now() + 1).toString(), x: 0, y: radius * 0.8, color: hslToHex((baseHue + 180) % 360, 100, brightness) }
                   );
                   break;
                 case 'split-complementary':
                   newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(0, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex(120, 100, brightness) },
-                    { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex(240, 100, brightness) }
+                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+                    { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 150) % 360, 100, brightness) },
+                    { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 210) % 360, 100, brightness) }
                   );
                   break;
                 case 'triadic':
                   newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(0, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex(120, 100, brightness) },
-                    { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex(240, 100, brightness) }
+                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+                    { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 120) % 360, 100, brightness) },
+                    { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 240) % 360, 100, brightness) }
                   );
                   break;
                 case 'analogous':
                   newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(0, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: radius * 0.4, y: -radius * 0.7, color: hslToHex(30, 100, brightness) },
-                    { id: (Date.now() + 2).toString(), x: -radius * 0.4, y: -radius * 0.7, color: hslToHex(330, 100, brightness) }
+                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+                    { id: (Date.now() + 1).toString(), x: radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 30) % 360, 100, brightness) },
+                    { id: (Date.now() + 2).toString(), x: -radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 330) % 360, 100, brightness) }
                   );
                   break;
                 case 'monochromatic':
                   newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(0, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: 0, y: -radius * 0.4, color: hslToHex(0, 80, brightness) },
-                    { id: (Date.now() + 2).toString(), x: 0, y: 0, color: hslToHex(0, 60, brightness) }
+                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+                    { id: (Date.now() + 1).toString(), x: 0, y: -radius * 0.4, color: hslToHex(baseHue, 80, brightness) },
+                    { id: (Date.now() + 2).toString(), x: 0, y: 0, color: hslToHex(baseHue, 60, brightness) }
                   );
                   break;
               }
@@ -385,7 +403,7 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
       {/* カラーホイール */}
       <div className="space-y-3">
         <div className="text-center text-sm text-slate-600 dark:text-slate-400">
-          💡 ホイール上をクリックして色を追加、ドラッグで移動できます
+          💡 ホイール上をタップ/クリックして色を追加、ドラッグで移動できます
         </div>
         <div className="flex justify-center">
           <div ref={containerRef} className="relative">
@@ -393,11 +411,11 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
               ref={canvasRef}
               width={wheelSize}
               height={wheelSize}
-              className="border border-slate-300 dark:border-slate-600 rounded-full cursor-crosshair"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
+              className="border border-slate-300 dark:border-slate-600 rounded-full cursor-crosshair touch-none"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
             />
           </div>
         </div>
