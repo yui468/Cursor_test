@@ -16,11 +16,20 @@ export default function Home() {
   // 保存されたパレットのリスト
   const [savedPalettes, setSavedPalettes] = useState<string[][]>([]);
 
-  // パレットを生成する関数
-  const generatePalette = () => {
-    const newPalette = generateColorPalette(currentColor);
-    console.log('生成されたパレット:', newPalette); // デバッグ出力
-    setPalette(newPalette);
+  // パレットを生成する関数（API呼び出し版）
+  const generatePalette = async () => {
+    try {
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/palette/generate?baseColor=${encodeURIComponent(currentColor)}`
+          : `http://localhost:8080/api/palette/generate?baseColor=${encodeURIComponent(currentColor)}`
+      );
+      if (!res.ok) throw new Error('API呼び出しに失敗しました');
+      const data = await res.json();
+      setPalette(data.palette || []);
+    } catch (e) {
+      alert('パレット生成APIの呼び出しに失敗しました');
+    }
   };
 
   // パレットを保存する関数
