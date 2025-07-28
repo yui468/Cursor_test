@@ -217,22 +217,24 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
     if (!movedPoint) return points;
 
     const movedIndex = points.findIndex(p => p.id === movedPointId);
-    const baseHue = Math.atan2(newY, newX) * (180 / Math.PI);
+    const movedHue = Math.atan2(newY, newX) * (180 / Math.PI);
     
     switch (harmonyType) {
       case 'complementary':
         if (movedIndex === 0) {
           // 基準色を動かした場合、補色も更新
-          const complementaryHue = (baseHue + 180) % 360;
+          const complementaryHue = (movedHue + 180) % 360;
           const complementaryColor = hslToHex(complementaryHue, 100, brightness);
           return points.map((point, index) => 
             index === 1 ? { ...point, x: -newX, y: -newY, color: complementaryColor } : point
           );
         } else if (movedIndex === 1) {
           // 補色を動かした場合、基準色も更新
+          const baseHue = (movedHue + 180) % 360;
           const baseColor = hslToHex(baseHue, 100, brightness);
+          const baseAngle = (baseHue * Math.PI) / 180;
           return points.map((point, index) => 
-            index === 0 ? { ...point, x: -newX, y: -newY, color: baseColor } : point
+            index === 0 ? { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor } : point
           );
         }
         break;
@@ -240,8 +242,8 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
       case 'split-complementary':
         if (movedIndex === 0) {
           // 基準色を動かした場合、分割補色も更新
-          const split1Hue = (baseHue + 150) % 360;
-          const split2Hue = (baseHue + 210) % 360;
+          const split1Hue = (movedHue + 150) % 360;
+          const split2Hue = (movedHue + 210) % 360;
           const split1Color = hslToHex(split1Hue, 100, brightness);
           const split2Color = hslToHex(split2Hue, 100, brightness);
           
@@ -255,14 +257,48 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
             }
             return point;
           });
+        } else if (movedIndex === 1) {
+          // 分割補色1を動かした場合、基準色と分割補色2も更新
+          const baseHue = (movedHue - 150 + 360) % 360;
+          const split2Hue = (baseHue + 210) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const split2Color = hslToHex(split2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 2) {
+              const angle2 = (split2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.7 * Math.cos(angle2), y: radius * 0.4 * Math.sin(angle2), color: split2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 2) {
+          // 分割補色2を動かした場合、基準色と分割補色1も更新
+          const baseHue = (movedHue - 210 + 360) % 360;
+          const split1Hue = (baseHue + 150) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const split1Color = hslToHex(split1Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 1) {
+              const angle1 = (split1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.7 * Math.cos(angle1), y: radius * 0.4 * Math.sin(angle1), color: split1Color };
+            }
+            return point;
+          });
         }
         break;
         
       case 'triadic':
         if (movedIndex === 0) {
           // 基準色を動かした場合、他の2色も更新
-          const triadic1Hue = (baseHue + 120) % 360;
-          const triadic2Hue = (baseHue + 240) % 360;
+          const triadic1Hue = (movedHue + 120) % 360;
+          const triadic2Hue = (movedHue + 240) % 360;
           const triadic1Color = hslToHex(triadic1Hue, 100, brightness);
           const triadic2Color = hslToHex(triadic2Hue, 100, brightness);
           
@@ -276,14 +312,48 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
             }
             return point;
           });
+        } else if (movedIndex === 1) {
+          // 三色1を動かした場合、基準色と三色2も更新
+          const baseHue = (movedHue - 120 + 360) % 360;
+          const triadic2Hue = (baseHue + 240) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const triadic2Color = hslToHex(triadic2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 2) {
+              const angle2 = (triadic2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.7 * Math.cos(angle2), y: radius * 0.4 * Math.sin(angle2), color: triadic2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 2) {
+          // 三色2を動かした場合、基準色と三色1も更新
+          const baseHue = (movedHue - 240 + 360) % 360;
+          const triadic1Hue = (baseHue + 120) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const triadic1Color = hslToHex(triadic1Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 1) {
+              const angle1 = (triadic1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.7 * Math.cos(angle1), y: radius * 0.4 * Math.sin(angle1), color: triadic1Color };
+            }
+            return point;
+          });
         }
         break;
         
       case 'analogous':
         if (movedIndex === 0) {
           // 基準色を動かした場合、類似色も更新
-          const analogous1Hue = (baseHue + 30) % 360;
-          const analogous2Hue = (baseHue + 330) % 360;
+          const analogous1Hue = (movedHue + 30) % 360;
+          const analogous2Hue = (movedHue + 330) % 360;
           const analogous1Color = hslToHex(analogous1Hue, 100, brightness);
           const analogous2Color = hslToHex(analogous2Hue, 100, brightness);
           
@@ -297,6 +367,40 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
             }
             return point;
           });
+        } else if (movedIndex === 1) {
+          // 類似色1を動かした場合、基準色と類似色2も更新
+          const baseHue = (movedHue - 30 + 360) % 360;
+          const analogous2Hue = (baseHue + 330) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const analogous2Color = hslToHex(analogous2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 2) {
+              const angle2 = (analogous2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.4 * Math.cos(angle2), y: -radius * 0.7 * Math.sin(angle2), color: analogous2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 2) {
+          // 類似色2を動かした場合、基準色と類似色1も更新
+          const baseHue = (movedHue - 330 + 360) % 360;
+          const analogous1Hue = (baseHue + 30) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const analogous1Color = hslToHex(analogous1Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 1) {
+              const angle1 = (analogous1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.4 * Math.cos(angle1), y: -radius * 0.7 * Math.sin(angle1), color: analogous1Color };
+            }
+            return point;
+          });
         }
         break;
         
@@ -304,13 +408,25 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
         // 単色の場合は基準色の明度のみ変更
         if (movedIndex === 0) {
           const saturation = Math.min((Math.sqrt(newX * newX + newY * newY) / radius) * 100, 100);
-          const color = hslToHex(baseHue, saturation, brightness);
+          const color = hslToHex(movedHue, saturation, brightness);
           
           return points.map((point, index) => {
             if (index === 1) {
-              return { ...point, x: newX * 0.5, y: newY * 0.5, color: hslToHex(baseHue, saturation * 0.8, brightness) };
+              return { ...point, x: newX * 0.5, y: newY * 0.5, color: hslToHex(movedHue, saturation * 0.8, brightness) };
             } else if (index === 2) {
-              return { ...point, x: newX * 0.25, y: newY * 0.25, color: hslToHex(baseHue, saturation * 0.6, brightness) };
+              return { ...point, x: newX * 0.25, y: newY * 0.25, color: hslToHex(movedHue, saturation * 0.6, brightness) };
+            }
+            return point;
+          });
+        } else if (movedIndex === 1 || movedIndex === 2) {
+          // 他のポイントを動かした場合、基準色も更新
+          const saturation = Math.min((Math.sqrt(newX * newX + newY * newY) / radius) * 100, 100);
+          const baseColor = hslToHex(movedHue, saturation, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const scale = movedIndex === 1 ? 2 : 4; // 1番目なら2倍、2番目なら4倍
+              return { ...point, x: newX * scale, y: newY * scale, color: baseColor };
             }
             return point;
           });
