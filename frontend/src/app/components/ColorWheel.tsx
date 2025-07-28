@@ -89,51 +89,50 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
     });
   }, [colorMode, brightness, colorPoints, centerX, centerY]);
 
-  // 配色パターンを適用（初回のみ）
+  // 配色パターンを適用
   useEffect(() => {
-    if (colorPoints.length === 0) {
-      const newPoints: ColorPoint[] = [];
-      
-      switch (harmonyType) {
-        case 'complementary':
-          newPoints.push(
-            { id: '1', x: 0, y: -radius * 0.8, color: '#FF0000' },
-            { id: '2', x: 0, y: radius * 0.8, color: '#00FFFF' }
-          );
-          break;
-        case 'split-complementary':
-          newPoints.push(
-            { id: '1', x: 0, y: -radius * 0.8, color: '#FF0000' },
-            { id: '2', x: radius * 0.7, y: radius * 0.4, color: '#00FF00' },
-            { id: '3', x: -radius * 0.7, y: radius * 0.4, color: '#0000FF' }
-          );
-          break;
-        case 'triadic':
-          newPoints.push(
-            { id: '1', x: 0, y: -radius * 0.8, color: '#FF0000' },
-            { id: '2', x: radius * 0.7, y: radius * 0.4, color: '#00FF00' },
-            { id: '3', x: -radius * 0.7, y: radius * 0.4, color: '#0000FF' }
-          );
-          break;
-        case 'analogous':
-          newPoints.push(
-            { id: '1', x: 0, y: -radius * 0.8, color: '#FF0000' },
-            { id: '2', x: radius * 0.4, y: -radius * 0.7, color: '#FF8000' },
-            { id: '3', x: -radius * 0.4, y: -radius * 0.7, color: '#8000FF' }
-          );
-          break;
-        case 'monochromatic':
-          newPoints.push(
-            { id: '1', x: 0, y: -radius * 0.8, color: '#FF0000' },
-            { id: '2', x: 0, y: -radius * 0.4, color: '#FF4040' },
-            { id: '3', x: 0, y: 0, color: '#FF8080' }
-          );
-          break;
-      }
-      
-      setColorPoints(newPoints);
+    const newPoints: ColorPoint[] = [];
+    const baseHue = 0; // 基準色（赤）
+    
+    switch (harmonyType) {
+      case 'complementary':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: 0, y: radius * 0.8, color: hslToHex((baseHue + 180) % 360, 100, brightness) }
+        );
+        break;
+      case 'split-complementary':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 150) % 360, 100, brightness) },
+          { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 210) % 360, 100, brightness) }
+        );
+        break;
+      case 'triadic':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 120) % 360, 100, brightness) },
+          { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 240) % 360, 100, brightness) }
+        );
+        break;
+      case 'analogous':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 30) % 360, 100, brightness) },
+          { id: (Date.now() + 2).toString(), x: -radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 330) % 360, 100, brightness) }
+        );
+        break;
+      case 'monochromatic':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: 0, y: -radius * 0.4, color: hslToHex(baseHue, 80, brightness) },
+          { id: (Date.now() + 2).toString(), x: 0, y: 0, color: hslToHex(baseHue, 60, brightness) }
+        );
+        break;
     }
-  }, [harmonyType, colorPoints.length, radius]);
+    
+    setColorPoints(newPoints);
+  }, [harmonyType, brightness, radius]);
 
   // パレットを更新
   useEffect(() => {
@@ -534,84 +533,27 @@ export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
       </div>
 
       {/* 配色パターン */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
-          {[
-            { type: 'complementary' as HarmonyType, label: '補色', icon: '⚖️' },
-            { type: 'split-complementary' as HarmonyType, label: '分割補色', icon: '🔀' },
-            { type: 'triadic' as HarmonyType, label: '三色', icon: '🔺' },
-            { type: 'analogous' as HarmonyType, label: '類似色', icon: '🔄' },
-            { type: 'monochromatic' as HarmonyType, label: '単色', icon: '🎨' }
-          ].map(({ type, label, icon }) => (
-            <button
-              key={type}
-              onClick={() => setHarmonyType(type)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                harmonyType === type
-                  ? 'bg-green-500 text-white'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              <span className="mr-1">{icon}</span>
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        {[
+          { type: 'complementary' as HarmonyType, label: '補色', icon: '⚖️' },
+          { type: 'split-complementary' as HarmonyType, label: '分割補色', icon: '🔀' },
+          { type: 'triadic' as HarmonyType, label: '三色', icon: '🔺' },
+          { type: 'analogous' as HarmonyType, label: '類似色', icon: '🔄' },
+          { type: 'monochromatic' as HarmonyType, label: '単色', icon: '🎨' }
+        ].map(({ type, label, icon }) => (
           <button
-            onClick={() => {
-              const newPoints: ColorPoint[] = [];
-              const baseHue = 0; // 基準色（赤）
-              
-              switch (harmonyType) {
-                case 'complementary':
-                  newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: 0, y: radius * 0.8, color: hslToHex((baseHue + 180) % 360, 100, brightness) }
-                  );
-                  break;
-                case 'split-complementary':
-                  newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 150) % 360, 100, brightness) },
-                    { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 210) % 360, 100, brightness) }
-                  );
-                  break;
-                case 'triadic':
-                  newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 120) % 360, 100, brightness) },
-                    { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 240) % 360, 100, brightness) }
-                  );
-                  break;
-                case 'analogous':
-                  newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 30) % 360, 100, brightness) },
-                    { id: (Date.now() + 2).toString(), x: -radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 330) % 360, 100, brightness) }
-                  );
-                  break;
-                case 'monochromatic':
-                  newPoints.push(
-                    { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
-                    { id: (Date.now() + 1).toString(), x: 0, y: -radius * 0.4, color: hslToHex(baseHue, 80, brightness) },
-                    { id: (Date.now() + 2).toString(), x: 0, y: 0, color: hslToHex(baseHue, 60, brightness) }
-                  );
-                  break;
-              }
-              setColorPoints(newPoints);
-            }}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+            key={type}
+            onClick={() => setHarmonyType(type)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              harmonyType === type
+                ? 'bg-green-500 text-white'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+            }`}
           >
-            パターンを適用
+            <span className="mr-1">{icon}</span>
+            {label}
           </button>
-          <button
-            onClick={() => setColorPoints([])}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            クリア
-          </button>
-        </div>
+        ))}
       </div>
 
       {/* カラーホイール */}
