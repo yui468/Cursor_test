@@ -1,0 +1,670 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+
+interface ColorPoint {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
+interface ColorWheelProps {
+  onPaletteChange: (colors: string[]) => void;
+}
+
+type ColorMode = 'RGB' | 'RYB';
+type HarmonyType = 'complementary' | 'split-complementary' | 'triadic' | 'analogous' | 'monochromatic';
+
+export default function ColorWheel({ onPaletteChange }: ColorWheelProps) {
+  const [colorMode, setColorMode] = useState<ColorMode>('RGB');
+  const [brightness, setBrightness] = useState(50);
+  const [harmonyType, setHarmonyType] = useState<HarmonyType>('complementary');
+  const [colorPoints, setColorPoints] = useState<ColorPoint[]>([]);
+  const [isEditMode, setIsEditMode] = useState(true);
+  const [draggedPoint, setDraggedPoint] = useState<string | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const wheelSize = 300;
+  const centerX = wheelSize / 2;
+  const centerY = wheelSize / 2;
+  const radius = 120;
+
+  // カラーホイールを描画
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // キャンバスをクリア
+    ctx.clearRect(0, 0, wheelSize, wheelSize);
+
+    // カラーホイールを描画
+    for (let angle = 0; angle < 360; angle += 1) {
+      for (let r = 0; r < radius; r += 1) {
+        const hue = colorMode === 'RGB' ? angle : (angle + 180) % 360; // RYBモードでは色相を180度回転
+        const saturation = (r / radius) * 100;
+        const lightness = brightness;
+        
+        const color = hslToHex(hue, saturation, lightness);
+        ctx.fillStyle = color;
+        ctx.fillRect(
+          centerX + r * Math.cos((angle * Math.PI) / 180),
+          centerY + r * Math.sin((angle * Math.PI) / 180),
+          1,
+          1
+        );
+      }
+    }
+
+    // カラーポイントを描画
+    colorPoints.forEach((point, index) => {
+      const x = centerX + point.x;
+      const y = centerY + point.y;
+      
+      // 外側の白い円
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, 2 * Math.PI);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // 内側の色円
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = point.color;
+      ctx.fill();
+      
+      // 番号を表示
+      ctx.fillStyle = '#333';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText((index + 1).toString(), x, y);
+    });
+  }, [colorMode, brightness, colorPoints, centerX, centerY]);
+
+  // 配色パターンを適用
+  useEffect(() => {
+    const newPoints: ColorPoint[] = [];
+    const baseHue = 0; // 基準色（赤）
+    
+    switch (harmonyType) {
+      case 'complementary':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: 0, y: radius * 0.8, color: hslToHex((baseHue + 180) % 360, 100, brightness) }
+        );
+        break;
+      case 'split-complementary':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 150) % 360, 100, brightness) },
+          { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 210) % 360, 100, brightness) }
+        );
+        break;
+      case 'triadic':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 120) % 360, 100, brightness) },
+          { id: (Date.now() + 2).toString(), x: -radius * 0.7, y: radius * 0.4, color: hslToHex((baseHue + 240) % 360, 100, brightness) }
+        );
+        break;
+      case 'analogous':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 30) % 360, 100, brightness) },
+          { id: (Date.now() + 2).toString(), x: -radius * 0.4, y: -radius * 0.7, color: hslToHex((baseHue + 330) % 360, 100, brightness) }
+        );
+        break;
+      case 'monochromatic':
+        newPoints.push(
+          { id: Date.now().toString(), x: 0, y: -radius * 0.8, color: hslToHex(baseHue, 100, brightness) },
+          { id: (Date.now() + 1).toString(), x: 0, y: -radius * 0.4, color: hslToHex(baseHue, 80, brightness) },
+          { id: (Date.now() + 2).toString(), x: 0, y: 0, color: hslToHex(baseHue, 60, brightness) }
+        );
+        break;
+    }
+    
+    setColorPoints(newPoints);
+  }, [harmonyType, brightness, radius]);
+
+  // パレットを更新
+  useEffect(() => {
+    const colors = colorPoints.map(point => point.color);
+    onPaletteChange(colors);
+  }, [colorPoints, onPaletteChange]);
+
+  // 共通の座標計算関数
+  const getCoordinates = (clientX: number, clientY: number) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    
+    const x = clientX - rect.left - centerX;
+    const y = clientY - rect.top - centerY;
+    const distance = Math.sqrt(x * x + y * y);
+    
+    return { x, y, distance };
+  };
+
+  // 色を計算する関数
+  const calculateColor = (x: number, y: number) => {
+    const angle = Math.atan2(y, x) * (180 / Math.PI);
+    const hue = (angle + 360) % 360;
+    const saturation = Math.min((Math.sqrt(x * x + y * y) / radius) * 100, 100);
+    return hslToHex(hue, saturation, brightness);
+  };
+
+  // マウス・タッチイベント処理
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!isEditMode) return;
+    
+    // タッチ操作の場合はデフォルトの動作を防ぐ
+    e.preventDefault();
+    
+    const coords = getCoordinates(e.clientX, e.clientY);
+    if (!coords) return;
+    
+    const { x, y, distance } = coords;
+    
+    // 既存のポイントをクリックしたかチェック
+    const clickedPoint = colorPoints.find(point => {
+      const pointDistance = Math.sqrt((point.x - x) ** 2 + (point.y - y) ** 2);
+      return pointDistance <= 20; // タッチ操作のため範囲を少し広げる
+    });
+    
+    if (clickedPoint) {
+      setDraggedPoint(clickedPoint.id);
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!draggedPoint || !isEditMode) return;
+    
+    // タッチ操作の場合はデフォルトの動作を防ぐ
+    e.preventDefault();
+    
+    const coords = getCoordinates(e.clientX, e.clientY);
+    if (!coords) return;
+    
+    const { x, y, distance } = coords;
+    
+    if (distance <= radius) {
+      const color = calculateColor(x, y);
+      
+      setColorPoints(prev => {
+        const updatedPoints = prev.map(point => 
+          point.id === draggedPoint 
+            ? { ...point, x, y, color }
+            : point
+        );
+        
+        // パターンを維持しながら他のポイントも更新
+        return updatePatternPoints(updatedPoints, draggedPoint, x, y);
+      });
+    }
+  };
+
+  // パターンを維持しながらポイントを更新する関数
+  const updatePatternPoints = (points: ColorPoint[], movedPointId: string, newX: number, newY: number) => {
+    const movedPoint = points.find(p => p.id === movedPointId);
+    if (!movedPoint) return points;
+
+    const movedIndex = points.findIndex(p => p.id === movedPointId);
+    const movedHue = Math.atan2(newY, newX) * (180 / Math.PI);
+    
+    switch (harmonyType) {
+      case 'complementary':
+        if (movedIndex === 0) {
+          // 基準色を動かした場合、補色も更新
+          const complementaryHue = (movedHue + 180) % 360;
+          const complementaryColor = hslToHex(complementaryHue, 100, brightness);
+          return points.map((point, index) => 
+            index === 1 ? { ...point, x: -newX, y: -newY, color: complementaryColor } : point
+          );
+        } else if (movedIndex === 1) {
+          // 補色を動かした場合、基準色も更新
+          const baseHue = (movedHue + 180) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const baseAngle = (baseHue * Math.PI) / 180;
+          return points.map((point, index) => 
+            index === 0 ? { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor } : point
+          );
+        }
+        break;
+        
+      case 'split-complementary':
+        if (movedIndex === 0) {
+          // 基準色を動かした場合、分割補色も更新
+          const split1Hue = (movedHue + 150) % 360;
+          const split2Hue = (movedHue + 210) % 360;
+          const split1Color = hslToHex(split1Hue, 100, brightness);
+          const split2Color = hslToHex(split2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 1) {
+              const angle1 = (split1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.7 * Math.cos(angle1), y: radius * 0.4 * Math.sin(angle1), color: split1Color };
+            } else if (index === 2) {
+              const angle2 = (split2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.7 * Math.cos(angle2), y: radius * 0.4 * Math.sin(angle2), color: split2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 1) {
+          // 分割補色1を動かした場合、基準色と分割補色2も更新
+          const baseHue = (movedHue - 150 + 360) % 360;
+          const split2Hue = (baseHue + 210) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const split2Color = hslToHex(split2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 2) {
+              const angle2 = (split2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.7 * Math.cos(angle2), y: radius * 0.4 * Math.sin(angle2), color: split2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 2) {
+          // 分割補色2を動かした場合、基準色と分割補色1も更新
+          const baseHue = (movedHue - 210 + 360) % 360;
+          const split1Hue = (baseHue + 150) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const split1Color = hslToHex(split1Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 1) {
+              const angle1 = (split1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.7 * Math.cos(angle1), y: radius * 0.4 * Math.sin(angle1), color: split1Color };
+            }
+            return point;
+          });
+        }
+        break;
+        
+      case 'triadic':
+        if (movedIndex === 0) {
+          // 基準色を動かした場合、他の2色も更新
+          const triadic1Hue = (movedHue + 120) % 360;
+          const triadic2Hue = (movedHue + 240) % 360;
+          const triadic1Color = hslToHex(triadic1Hue, 100, brightness);
+          const triadic2Color = hslToHex(triadic2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 1) {
+              const angle1 = (triadic1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.7 * Math.cos(angle1), y: radius * 0.4 * Math.sin(angle1), color: triadic1Color };
+            } else if (index === 2) {
+              const angle2 = (triadic2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.7 * Math.cos(angle2), y: radius * 0.4 * Math.sin(angle2), color: triadic2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 1) {
+          // 三色1を動かした場合、基準色と三色2も更新
+          const baseHue = (movedHue - 120 + 360) % 360;
+          const triadic2Hue = (baseHue + 240) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const triadic2Color = hslToHex(triadic2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 2) {
+              const angle2 = (triadic2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.7 * Math.cos(angle2), y: radius * 0.4 * Math.sin(angle2), color: triadic2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 2) {
+          // 三色2を動かした場合、基準色と三色1も更新
+          const baseHue = (movedHue - 240 + 360) % 360;
+          const triadic1Hue = (baseHue + 120) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const triadic1Color = hslToHex(triadic1Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 1) {
+              const angle1 = (triadic1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.7 * Math.cos(angle1), y: radius * 0.4 * Math.sin(angle1), color: triadic1Color };
+            }
+            return point;
+          });
+        }
+        break;
+        
+      case 'analogous':
+        if (movedIndex === 0) {
+          // 基準色を動かした場合、類似色も更新
+          const analogous1Hue = (movedHue + 30) % 360;
+          const analogous2Hue = (movedHue + 330) % 360;
+          const analogous1Color = hslToHex(analogous1Hue, 100, brightness);
+          const analogous2Color = hslToHex(analogous2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 1) {
+              const angle1 = (analogous1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.4 * Math.cos(angle1), y: -radius * 0.7 * Math.sin(angle1), color: analogous1Color };
+            } else if (index === 2) {
+              const angle2 = (analogous2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.4 * Math.cos(angle2), y: -radius * 0.7 * Math.sin(angle2), color: analogous2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 1) {
+          // 類似色1を動かした場合、基準色と類似色2も更新
+          const baseHue = (movedHue - 30 + 360) % 360;
+          const analogous2Hue = (baseHue + 330) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const analogous2Color = hslToHex(analogous2Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 2) {
+              const angle2 = (analogous2Hue * Math.PI) / 180;
+              return { ...point, x: -radius * 0.4 * Math.cos(angle2), y: -radius * 0.7 * Math.sin(angle2), color: analogous2Color };
+            }
+            return point;
+          });
+        } else if (movedIndex === 2) {
+          // 類似色2を動かした場合、基準色と類似色1も更新
+          const baseHue = (movedHue - 330 + 360) % 360;
+          const analogous1Hue = (baseHue + 30) % 360;
+          const baseColor = hslToHex(baseHue, 100, brightness);
+          const analogous1Color = hslToHex(analogous1Hue, 100, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const baseAngle = (baseHue * Math.PI) / 180;
+              return { ...point, x: radius * 0.8 * Math.cos(baseAngle), y: radius * 0.8 * Math.sin(baseAngle), color: baseColor };
+            } else if (index === 1) {
+              const angle1 = (analogous1Hue * Math.PI) / 180;
+              return { ...point, x: radius * 0.4 * Math.cos(angle1), y: -radius * 0.7 * Math.sin(angle1), color: analogous1Color };
+            }
+            return point;
+          });
+        }
+        break;
+        
+      case 'monochromatic':
+        // 単色の場合は基準色の明度のみ変更
+        if (movedIndex === 0) {
+          const saturation = Math.min((Math.sqrt(newX * newX + newY * newY) / radius) * 100, 100);
+          const color = hslToHex(movedHue, saturation, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 1) {
+              return { ...point, x: newX * 0.5, y: newY * 0.5, color: hslToHex(movedHue, saturation * 0.8, brightness) };
+            } else if (index === 2) {
+              return { ...point, x: newX * 0.25, y: newY * 0.25, color: hslToHex(movedHue, saturation * 0.6, brightness) };
+            }
+            return point;
+          });
+        } else if (movedIndex === 1 || movedIndex === 2) {
+          // 他のポイントを動かした場合、基準色も更新
+          const saturation = Math.min((Math.sqrt(newX * newX + newY * newY) / radius) * 100, 100);
+          const baseColor = hslToHex(movedHue, saturation, brightness);
+          
+          return points.map((point, index) => {
+            if (index === 0) {
+              const scale = movedIndex === 1 ? 2 : 4; // 1番目なら2倍、2番目なら4倍
+              return { ...point, x: newX * scale, y: newY * scale, color: baseColor };
+            }
+            return point;
+          });
+        }
+        break;
+    }
+    
+    return points;
+  };
+
+  const handlePointerUp = () => {
+    setDraggedPoint(null);
+  };
+
+  const handlePointDelete = (id: string) => {
+    setColorPoints(prev => prev.filter(point => point.id !== id));
+  };
+
+  // HSL to HEX変換
+  const hslToHex = (h: number, s: number, l: number): string => {
+    s /= 100;
+    l /= 100;
+    
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    
+    let r = 0, g = 0, b = 0;
+    
+    if (h >= 0 && h < 60) {
+      r = c; g = x; b = 0;
+    } else if (h >= 60 && h < 120) {
+      r = x; g = c; b = 0;
+    } else if (h >= 120 && h < 180) {
+      r = 0; g = c; b = x;
+    } else if (h >= 180 && h < 240) {
+      r = 0; g = x; b = c;
+    } else if (h >= 240 && h < 300) {
+      r = x; g = 0; b = c;
+    } else if (h >= 300 && h < 360) {
+      r = c; g = 0; b = x;
+    }
+    
+    const rHex = Math.round((r + m) * 255).toString(16).padStart(2, '0');
+    const gHex = Math.round((g + m) * 255).toString(16).padStart(2, '0');
+    const bHex = Math.round((b + m) * 255).toString(16).padStart(2, '0');
+    
+    return `#${rHex}${gHex}${bHex}`;
+  };
+
+  // HEX to HSL変換（色の詳細情報表示用）
+  const hexToHsl = (hex: string): { h: number; s: number; l: number } => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100)
+    };
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* カラーモード切替 */}
+      <div className="flex space-x-2">
+        <button
+          onClick={() => setColorMode('RGB')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            colorMode === 'RGB'
+              ? 'bg-blue-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+          }`}
+        >
+          RGB
+        </button>
+        <button
+          onClick={() => setColorMode('RYB')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            colorMode === 'RYB'
+              ? 'bg-blue-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+          }`}
+        >
+          RYB
+        </button>
+      </div>
+
+      {/* 配色パターン */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { type: 'complementary' as HarmonyType, label: '補色', icon: '⚖️' },
+          { type: 'split-complementary' as HarmonyType, label: '分割補色', icon: '🔀' },
+          { type: 'triadic' as HarmonyType, label: '三色', icon: '🔺' },
+          { type: 'analogous' as HarmonyType, label: '類似色', icon: '🔄' },
+          { type: 'monochromatic' as HarmonyType, label: '単色', icon: '🎨' }
+        ].map(({ type, label, icon }) => (
+          <button
+            key={type}
+            onClick={() => setHarmonyType(type)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              harmonyType === type
+                ? 'bg-green-500 text-white'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+            }`}
+          >
+            <span className="mr-1">{icon}</span>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* カラーホイール */}
+      <div className="space-y-3">
+        <div className="text-center text-sm text-slate-600 dark:text-slate-400">
+          💡 ポイントをドラッグして移動、パターンが自動的に維持されます
+        </div>
+        <div className="flex justify-center">
+          <div ref={containerRef} className="relative">
+            <canvas
+              ref={canvasRef}
+              width={wheelSize}
+              height={wheelSize}
+              className="border border-slate-300 dark:border-slate-600 rounded-full cursor-crosshair touch-none"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 明度スライダー */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+          明度: {brightness}%
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={brightness}
+          onChange={(e) => setBrightness(Number(e.target.value))}
+          className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+        />
+      </div>
+
+      {/* カラーパレット表示 */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+          カラーパレット ({colorPoints.length}/5)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {colorPoints.map((point, index) => (
+            <div
+              key={point.id}
+              className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-md border border-slate-200 dark:border-slate-700"
+            >
+              <div className="flex items-center space-x-3">
+                <div
+                  className="w-12 h-12 rounded-lg border-2 border-slate-300 dark:border-slate-600"
+                  style={{ backgroundColor: point.color }}
+                />
+                <div className="flex-1">
+                  <div className="font-mono text-sm text-slate-900 dark:text-slate-100">
+                    {point.color}
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    ポイント {index + 1} • HSL({hexToHsl(point.color).h}, {hexToHsl(point.color).s}%, {hexToHsl(point.color).l}%)
+                  </div>
+                </div>
+                {isEditMode && (
+                  <button
+                    onClick={() => handlePointDelete(point.id)}
+                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 編集・保存ボタン */}
+      <div className="flex space-x-4">
+        <button
+          onClick={() => setIsEditMode(!isEditMode)}
+          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+            isEditMode
+              ? 'bg-orange-500 hover:bg-orange-600 text-white'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
+        >
+          {isEditMode ? '編集終了' : '編集モード'}
+        </button>
+        <button
+          onClick={() => {
+            const paletteData = {
+              colors: colorPoints.map(p => p.color),
+              harmonyType,
+              colorMode,
+              brightness,
+              timestamp: new Date().toISOString()
+            };
+            const dataStr = JSON.stringify(paletteData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `color-palette-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+        >
+          保存
+        </button>
+      </div>
+    </div>
+  );
+}
