@@ -5,7 +5,6 @@ import { useState } from 'react';
 interface HairColorVariant {
   name: string;
   color: string;
-  description: string;
 }
 
 interface HairColorSet {
@@ -22,11 +21,11 @@ function generateHairColorSet(baseColor: string): HairColorSet {
   if (!hsl) {
     // フォールバック用のデフォルト色
     return {
-      base: { name: 'ベース', color: baseColor, description: 'メインの髪色' },
-      shadow1: { name: '一影', color: '#000000', description: '最も暗い影' },
-      shadow2: { name: '二影', color: '#333333', description: '中間の影' },
-      highlight: { name: 'ハイライト', color: '#FFFFFF', description: '最も明るい部分' },
-      accent: { name: 'アクセント', color: '#666666', description: 'アクセントカラー' }
+      base: { name: 'ベース', color: baseColor },
+      shadow1: { name: '一影', color: '#000000' },
+      shadow2: { name: '二影', color: '#333333' },
+      highlight: { name: 'ハイライト', color: '#FFFFFF' },
+      accent: { name: 'アクセント', color: '#666666' }
     };
   }
 
@@ -35,13 +34,13 @@ function generateHairColorSet(baseColor: string): HairColorSet {
   const baseLightness = hsl.l;
   const lightnessRange = 0.3;
 
-  // 一影（最も暗い）
-  const shadow1Lightness = Math.max(5, baseLightness - lightnessRange * 100);
-  const shadow1Color = hslToHex(hsl.h, baseSaturation * 0.8, shadow1Lightness);
+  // 一影（最も明るい影）
+  const shadow1Lightness = Math.max(10, baseLightness - lightnessRange * 30);
+  const shadow1Color = hslToHex(hsl.h, baseSaturation * 0.9, shadow1Lightness);
 
-  // 二影（中間の影）
-  const shadow2Lightness = Math.max(10, baseLightness - lightnessRange * 50);
-  const shadow2Color = hslToHex(hsl.h, baseSaturation * 0.9, shadow2Lightness);
+  // 二影（最も暗い影）
+  const shadow2Lightness = Math.max(5, baseLightness - lightnessRange * 100);
+  const shadow2Color = hslToHex(hsl.h, baseSaturation * 0.8, shadow2Lightness);
 
   // ベース（メイン）
   const baseColorHex = hslToHex(hsl.h, baseSaturation, baseLightness);
@@ -55,31 +54,11 @@ function generateHairColorSet(baseColor: string): HairColorSet {
   const accentColor = hslToHex(accentHue, baseSaturation * 0.6, baseLightness + 10);
 
   return {
-    base: { 
-      name: 'ベース', 
-      color: baseColorHex || baseColor, 
-      description: 'メインの髪色。最も面積の多い部分に使用' 
-    },
-    shadow1: { 
-      name: '一影', 
-      color: shadow1Color || '#000000', 
-      description: '最も暗い影。髪の重なりや奥の部分に使用' 
-    },
-    shadow2: { 
-      name: '二影', 
-      color: shadow2Color || '#333333', 
-      description: '中間の影。立体感を表現する重要な色' 
-    },
-    highlight: { 
-      name: 'ハイライト', 
-      color: highlightColor || '#FFFFFF', 
-      description: '最も明るい部分。光が当たる部分に使用' 
-    },
-    accent: { 
-      name: 'アクセント', 
-      color: accentColor || '#666666', 
-      description: 'アクセントカラー。髪の流れや装飾に使用' 
-    }
+    base: { name: 'ベース', color: baseColorHex || baseColor },
+    shadow1: { name: '一影', color: shadow1Color || '#000000' },
+    shadow2: { name: '二影', color: shadow2Color || '#333333' },
+    highlight: { name: 'ハイライト', color: highlightColor || '#FFFFFF' },
+    accent: { name: 'アクセント', color: accentColor || '#666666' }
   };
 }
 
@@ -149,11 +128,8 @@ export default function HairColorHelper() {
               <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-1 text-center">
                 {variant.name}
               </h5>
-              <p className="text-xs font-mono text-slate-600 dark:text-slate-300 mb-2 text-center">
+              <p className="text-xs font-mono text-slate-600 dark:text-slate-300 text-center">
                 {variant.color}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-center">
-                {variant.description}
               </p>
             </div>
           ))}
@@ -216,8 +192,8 @@ export default function HairColorHelper() {
             <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-2">色の役割</h5>
             <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
               <li>• <b>ベース</b>：髪の大部分に使用するメインカラー</li>
-              <li>• <b>一影</b>：髪の重なりや奥の部分で最も暗い影</li>
-              <li>• <b>二影</b>：立体感を表現する中間の影</li>
+              <li>• <b>一影</b>：最も明るい影</li>
+              <li>• <b>二影</b>：最も暗い影</li>
               <li>• <b>ハイライト</b>：光が当たる部分で最も明るい色</li>
               <li>• <b>アクセント</b>：髪の流れや装飾に使用する差し色</li>
             </ul>
