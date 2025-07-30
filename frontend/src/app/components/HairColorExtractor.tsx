@@ -6,6 +6,7 @@ interface ExtractedColor {
   name: string;
   color: string;
   percentage: number;
+  samplePoints: { x: number; y: number }[];
 }
 
 interface HairColorSet {
@@ -61,14 +62,14 @@ function colorDistance(color1: { r: number, g: number, b: number }, color2: { r:
 }
 
 // K-meansクラスタリング（簡易版）
-function kMeansClustering(colors: { r: number, g: number, b: number }[], k: number) {
+function kMeansClustering(colors: { r: number, g: number, b: number, x: number, y: number }[], k: number) {
   if (colors.length === 0) return [];
 
   // 初期クラスタ中心をランダムに選択
   const centers: { r: number, g: number, b: number }[] = [];
   for (let i = 0; i < k; i++) {
     const randomIndex = Math.floor(Math.random() * colors.length);
-    centers.push({ ...colors[randomIndex] });
+    centers.push({ r: colors[randomIndex].r, g: colors[randomIndex].g, b: colors[randomIndex].b });
   }
 
   let iterations = 0;
@@ -76,7 +77,7 @@ function kMeansClustering(colors: { r: number, g: number, b: number }[], k: numb
 
   while (iterations < maxIterations) {
     // 各色を最も近いクラスタに割り当て
-    const clusters: { r: number, g: number, b: number }[][] = Array.from({ length: k }, () => []);
+    const clusters: { r: number, g: number, b: number, x: number, y: number }[][] = Array.from({ length: k }, () => []);
     
     colors.forEach(color => {
       let minDistance = Infinity;
@@ -123,18 +124,39 @@ function kMeansClustering(colors: { r: number, g: number, b: number }[], k: numb
     iterations++;
   }
 
-  return centers;
+  // 各クラスタからサンプルポイントを取得
+  const clusters: { r: number, g: number, b: number, x: number, y: number }[][] = Array.from({ length: k }, () => []);
+  
+  colors.forEach(color => {
+    let minDistance = Infinity;
+    let closestCluster = 0;
+    
+    centers.forEach((center, index) => {
+      const distance = colorDistance(color, center);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestCluster = index;
+      }
+    });
+    
+    clusters[closestCluster].push(color);
+  });
+
+  return centers.map((center, index) => ({
+    ...center,
+    samplePoints: clusters[index].slice(0, 5).map(color => ({ x: color.x, y: color.y }))
+  }));
 }
 
 // 髪色を役割に分類
-function classifyHairColors(colors: { r: number, g: number, b: number }[]): HairColorSet {
+function classifyHairColors(colors: { r: number, g: number, b: number, samplePoints: { x: number; y: number }[] }[]): HairColorSet {
   if (colors.length === 0) {
     return {
-      base: { name: 'ベース', color: '#000000', percentage: 0 },
-      shadow1: { name: '一影', color: '#000000', percentage: 0 },
-      shadow2: { name: '二影', color: '#000000', percentage: 0 },
-      highlight: { name: 'ハイライト', color: '#000000', percentage: 0 },
-      accent: { name: 'アクセント', color: '#000000', percentage: 0 }
+      base: { name: 'ベース', color: '#000000', percentage: 0, samplePoints: [] },
+      shadow1: { name: '一影', color: '#000000', percentage: 0, samplePoints: [] },
+      shadow2: { name: '二影', color: '#000000', percentage: 0, samplePoints: [] },
+      highlight: { name: 'ハイライト', color: '#000000', percentage: 0, samplePoints: [] },
+      accent: { name: 'アクセント', color: '#000000', percentage: 0, samplePoints: [] }
     };
   }
 
@@ -165,27 +187,32 @@ function classifyHairColors(colors: { r: number, g: number, b: number }[]): Hair
     base: {
       name: 'ベース',
       color: rgbToHex(base.r, base.g, base.b),
-      percentage: Math.round((baseIndex / totalColors) * 100)
+      percentage: Math.round((baseIndex / totalColors) * 100),
+      samplePoints: base.samplePoints
     },
     shadow1: {
       name: '一影',
       color: rgbToHex(shadow1.r, shadow1.g, shadow1.b),
-      percentage: Math.round((shadow1Index / totalColors) * 100)
+      percentage: Math.round((shadow1Index / totalColors) * 100),
+      samplePoints: shadow1.samplePoints
     },
     shadow2: {
       name: '二影',
       color: rgbToHex(shadow2.r, shadow2.g, shadow2.b),
-      percentage: Math.round((shadow2Index / totalColors) * 100)
+      percentage: Math.round((shadow2Index / totalColors) * 100),
+      samplePoints: shadow2.samplePoints
     },
     highlight: {
       name: 'ハイライト',
       color: rgbToHex(highlight.r, highlight.g, highlight.b),
-      percentage: Math.round((highlightIndex / totalColors) * 100)
+      percentage: Math.round((highlightIndex / totalColors) * 100),
+      samplePoints: highlight.samplePoints
     },
     accent: {
       name: 'アクセント',
       color: rgbToHex(accent.r, accent.g, accent.b),
-      percentage: Math.round((accentIndex / totalColors) * 100)
+      percentage: Math.round((accentIndex / totalColors) * 100),
+      samplePoints: accent.samplePoints
     }
   };
 }
@@ -195,7 +222,9 @@ export default function HairColorExtractor() {
   const [extractedColors, setExtractedColors] = useState<HairColorSet | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>('');
+  const [selectedColorName, setSelectedColorName] = useState<string>('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const copyToClipboard = (color: string) => {
     navigator.clipboard.writeText(color);
@@ -242,23 +271,26 @@ export default function HairColorExtractor() {
         const data = imageData.data;
 
         // 髪色らしい色を抽出（簡易的なフィルタリング）
-        const hairColors: { r: number, g: number, b: number }[] = [];
+        const hairColors: { r: number, g: number, b: number, x: number, y: number }[] = [];
         
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          // 髪色らしい色を判定（簡易版）
-          const hsl = rgbToHsl(r, g, b);
-          
-          // 肌色や背景色を除外
-          if (hsl.s > 10 && hsl.l > 10 && hsl.l < 90) {
-            // 髪色らしい色相範囲（茶色、金髪、黒髪など）
-            if ((hsl.h >= 0 && hsl.h <= 60) || // 黄色〜オレンジ
-                (hsl.h >= 300 && hsl.h <= 360) || // ピンク〜赤
-                (hsl.h >= 180 && hsl.h <= 240)) { // 青系
-              hairColors.push({ r, g, b });
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const i = (y * canvas.width + x) * 4;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            
+            // 髪色らしい色を判定（簡易版）
+            const hsl = rgbToHsl(r, g, b);
+            
+            // 肌色や背景色を除外
+            if (hsl.s > 10 && hsl.l > 10 && hsl.l < 90) {
+              // 髪色らしい色相範囲（茶色、金髪、黒髪など）
+              if ((hsl.h >= 0 && hsl.h <= 60) || // 黄色〜オレンジ
+                  (hsl.h >= 300 && hsl.h <= 360) || // ピンク〜赤
+                  (hsl.h >= 180 && hsl.h <= 240)) { // 青系
+                hairColors.push({ r, g, b, x, y });
+              }
             }
           }
         }
@@ -284,6 +316,12 @@ export default function HairColorExtractor() {
       setIsProcessing(false);
     }
   }, [uploadedImage]);
+
+  const handleColorClick = (color: ExtractedColor) => {
+    setSelectedColor(color.color);
+    setSelectedColorName(color.name);
+    copyToClipboard(color.color);
+  };
 
   return (
     <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
@@ -313,6 +351,7 @@ export default function HairColorExtractor() {
             <div className="flex items-center gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
+                ref={imageRef}
                 src={uploadedImage}
                 alt="アップロードされた画像"
                 className="w-32 h-32 object-cover rounded-lg border border-slate-200 dark:border-slate-600"
@@ -329,6 +368,42 @@ export default function HairColorExtractor() {
         </div>
       </div>
 
+      {/* 元画像とピン表示 */}
+      {uploadedImage && extractedColors && (
+        <div className="mb-8">
+          <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
+            抽出位置の確認
+          </h3>
+          <div className="relative inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={uploadedImage}
+              alt="元画像"
+              className="max-w-full h-auto rounded-lg border border-slate-200 dark:border-slate-600"
+            />
+            {/* ピンの表示 */}
+            {Object.entries(extractedColors).map(([key, color]) => (
+              color.samplePoints.map((point, index) => (
+                <div
+                  key={`${key}-${index}`}
+                  className="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg transform -translate-x-2 -translate-y-2 cursor-pointer hover:scale-125 transition-transform duration-200"
+                  style={{
+                    backgroundColor: color.color,
+                    left: `${(point.x / (imageRef.current?.naturalWidth || 1)) * 100}%`,
+                    top: `${(point.y / (imageRef.current?.naturalHeight || 1)) * 100}%`,
+                  }}
+                  onClick={() => handleColorClick(color)}
+                  title={`${color.name}: ${color.color}`}
+                />
+              ))
+            ))}
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
+            ピンをクリックすると対応する色の詳細が表示されます
+          </p>
+        </div>
+      )}
+
       {/* 抽出された髪色セット */}
       {extractedColors && (
         <div className="mb-8">
@@ -340,10 +415,7 @@ export default function HairColorExtractor() {
               <div
                 key={key}
                 className="flex-1 group cursor-pointer hover:shadow-lg transition-all duration-200"
-                onClick={() => {
-                  setSelectedColor(color.color);
-                  copyToClipboard(color.color);
-                }}
+                onClick={() => handleColorClick(color)}
               >
                 <div
                   className="w-full h-32 border border-slate-200 dark:border-slate-600"
@@ -370,7 +442,7 @@ export default function HairColorExtractor() {
       {selectedColor && (
         <div className="mb-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
           <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
-            選択された色
+            選択された色: {selectedColorName}
           </h4>
           <div className="flex items-center gap-4">
             <div
@@ -401,7 +473,7 @@ export default function HairColorExtractor() {
               <li>• イラストから髪色を自動抽出します</li>
               <li>• K-meansクラスタリングで代表色を抽出</li>
               <li>• 明度・彩度・色相で役割を分類</li>
-              <li>• 色をクリックするとHEX値をコピー</li>
+              <li>• ピンをクリックするとHEX値をコピー</li>
             </ul>
           </div>
           <div>
