@@ -111,52 +111,31 @@ export default function HairColorHelper() {
         <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
           生成された髪色セット
         </h3>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="flex gap-0">
           {Object.entries(hairColorSet).map(([key, variant]) => (
             <div
               key={key}
-              className="group cursor-pointer bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 border-2 border-transparent hover:border-blue-400"
+              className="flex-1 group cursor-pointer hover:shadow-lg transition-all duration-200"
               onClick={() => {
                 setSelectedColor(variant.color);
                 copyToClipboard(variant.color);
               }}
             >
               <div
-                className="w-full h-24 rounded-lg shadow-md mb-3 border border-slate-200 dark:border-slate-600"
+                className="w-full h-32 border border-slate-200 dark:border-slate-600"
                 style={{ backgroundColor: variant.color }}
               />
-              <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-1 text-center">
-                {variant.name}
-              </h5>
-              <p className="text-xs font-mono text-slate-600 dark:text-slate-300 text-center">
-                {variant.color}
-              </p>
+              <div className="bg-slate-50 dark:bg-slate-700 p-3 border border-slate-200 dark:border-slate-600">
+                <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-1 text-center text-sm">
+                  {variant.name}
+                </h5>
+                <p className="text-xs font-mono text-slate-600 dark:text-slate-300 text-center">
+                  {variant.color}
+                </p>
+              </div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* 色の並び順表示 */}
-      <div className="mb-8 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700 dark:to-blue-900/20 rounded-xl p-6 border border-slate-200 dark:border-slate-600">
-        <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
-          色の並び順（使用順序）
-        </h3>
-        <div className="flex items-center justify-center gap-2 mb-4">
-          {Object.entries(hairColorSet).map(([key, variant], index) => (
-            <div key={key} className="flex flex-col items-center">
-              <div
-                className="w-16 h-16 rounded-lg shadow-md border-2 border-slate-300 dark:border-slate-600"
-                style={{ backgroundColor: variant.color }}
-              />
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-200 mt-2">
-                {index + 1}. {variant.name}
-              </p>
-            </div>
-          ))}
-        </div>
-        <p className="text-sm text-slate-600 dark:text-slate-300 text-center">
-          左から右の順番で使用すると自然な髪色になります
-        </p>
       </div>
 
       {/* 選択された色の詳細 */}
@@ -203,7 +182,6 @@ export default function HairColorHelper() {
             <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
               <li>• 色をクリックするとHEX値をコピーできます</li>
               <li>• ベースカラーを変更すると全ての色が自動調整されます</li>
-              <li>• 左から右の順番で使用すると自然な髪色になります</li>
               <li>• イラストソフトでレイヤー分けして使用することをおすすめ</li>
             </ul>
           </div>
