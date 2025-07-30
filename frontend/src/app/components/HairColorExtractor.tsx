@@ -17,6 +17,13 @@ interface HairColorSet {
   accent: ExtractedColor;
 }
 
+interface SelectionArea {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 // 色をHSLに変換
 function rgbToHsl(r: number, g: number, b: number) {
   r /= 255;
@@ -223,8 +230,13 @@ export default function HairColorExtractor() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedColorName, setSelectedColorName] = useState<string>('');
+  const [selectionMode, setSelectionMode] = useState<'auto' | 'manual'>('auto');
+  const [selectionAreas, setSelectionAreas] = useState<SelectionArea[]>([]);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const copyToClipboard = (color: string) => {
     navigator.clipboard.writeText(color);
@@ -243,9 +255,52 @@ export default function HairColorExtractor() {
     reader.onload = (e) => {
       setUploadedImage(e.target?.result as string);
       setExtractedColors(null);
+      setSelectionAreas([]);
     };
     reader.readAsDataURL(file);
   }, []);
+
+  const getRelativeCoordinates = (event: React.MouseEvent, element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    return { x, y };
+  };
+
+  const handleMouseDown = (event: React.MouseEvent) => {
+    if (selectionMode !== 'manual' || !imageContainerRef.current) return;
+    
+    const coords = getRelativeCoordinates(event, imageContainerRef.current);
+    setSelectionStart(coords);
+    setIsSelecting(true);
+  };
+
+  const handleMouseMove = (event: React.MouseEvent) => {
+    if (!isSelecting || !selectionStart || !imageContainerRef.current) return;
+    
+    const coords = getRelativeCoordinates(event, imageContainerRef.current);
+    // 選択中の視覚的フィードバック（必要に応じて実装）
+  };
+
+  const handleMouseUp = (event: React.MouseEvent) => {
+    if (!isSelecting || !selectionStart || !imageContainerRef.current) return;
+    
+    const coords = getRelativeCoordinates(event, imageContainerRef.current);
+    const area: SelectionArea = {
+      x: Math.min(selectionStart.x, coords.x),
+      y: Math.min(selectionStart.y, coords.y),
+      width: Math.abs(coords.x - selectionStart.x),
+      height: Math.abs(coords.y - selectionStart.y)
+    };
+    
+    setSelectionAreas(prev => [...prev, area]);
+    setIsSelecting(false);
+    setSelectionStart(null);
+  };
+
+  const removeSelectionArea = (index: number) => {
+    setSelectionAreas(prev => prev.filter((_, i) => i !== index));
+  };
 
   const extractHairColors = useCallback(async () => {
     if (!uploadedImage || !canvasRef.current) return;
@@ -270,29 +325,54 @@ export default function HairColorExtractor() {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        // 髪色らしい色を抽出（簡易的なフィルタリング）
+        // 髪色らしい色を抽出
         const hairColors: { r: number, g: number, b: number, x: number, y: number }[] = [];
         
-        for (let y = 0; y < canvas.height; y++) {
-          for (let x = 0; x < canvas.width; x++) {
-            const i = (y * canvas.width + x) * 4;
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
+        if (selectionMode === 'manual' && selectionAreas.length > 0) {
+          // 手動選択エリアから抽出
+          selectionAreas.forEach(area => {
+            const startX = Math.floor(area.x * canvas.width);
+            const startY = Math.floor(area.y * canvas.height);
+            const endX = Math.floor((area.x + area.width) * canvas.width);
+            const endY = Math.floor((area.y + area.height) * canvas.height);
             
-            // 髪色らしい色を判定（簡易版）
-            const hsl = rgbToHsl(r, g, b);
-            
-            // 肌色や背景色を除外
-            if (hsl.s > 10 && hsl.l > 10 && hsl.l < 90) {
-              // 髪色らしい色相範囲（茶色、金髪、黒髪など）
-              if ((hsl.h >= 0 && hsl.h <= 60) || // 黄色〜オレンジ
-                  (hsl.h >= 300 && hsl.h <= 360) || // ピンク〜赤
-                  (hsl.h >= 180 && hsl.h <= 240)) { // 青系
+            for (let y = startY; y < endY; y++) {
+              for (let x = startX; x < endX; x++) {
+                const i = (y * canvas.width + x) * 4;
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                
                 hairColors.push({ r, g, b, x, y });
               }
             }
+          });
+        } else {
+          // 自動抽出（従来の方法）
+          for (let y = 0; y < canvas.height; y++) {
+            for (let x = 0; x < canvas.width; x++) {
+              const i = (y * canvas.width + x) * 4;
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              
+              const hsl = rgbToHsl(r, g, b);
+              
+              if (hsl.s > 10 && hsl.l > 10 && hsl.l < 90) {
+                if ((hsl.h >= 0 && hsl.h <= 60) || 
+                    (hsl.h >= 300 && hsl.h <= 360) || 
+                    (hsl.h >= 180 && hsl.h <= 240)) {
+                  hairColors.push({ r, g, b, x, y });
+                }
+              }
+            }
           }
+        }
+
+        if (hairColors.length === 0) {
+          alert('髪色が見つかりませんでした。選択エリアを調整するか、自動抽出を試してください。');
+          setIsProcessing(false);
+          return;
         }
 
         // 色の数を制限（処理速度向上のため）
@@ -315,7 +395,7 @@ export default function HairColorExtractor() {
     } finally {
       setIsProcessing(false);
     }
-  }, [uploadedImage]);
+  }, [uploadedImage, selectionMode, selectionAreas]);
 
   const handleColorClick = (color: ExtractedColor) => {
     setSelectedColor(color.color);
@@ -356,17 +436,97 @@ export default function HairColorExtractor() {
                 alt="アップロードされた画像"
                 className="w-32 h-32 object-cover rounded-lg border border-slate-200 dark:border-slate-600"
               />
-              <button
-                onClick={extractHairColors}
-                disabled={isProcessing}
-                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white font-semibold rounded-lg transition-colors duration-200"
-              >
-                {isProcessing ? '抽出中...' : '髪色を抽出'}
-              </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectionMode('auto')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      selectionMode === 'auto'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200'
+                    }`}
+                  >
+                    自動抽出
+                  </button>
+                  <button
+                    onClick={() => setSelectionMode('manual')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      selectionMode === 'manual'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200'
+                    }`}
+                  >
+                    手動選択
+                  </button>
+                </div>
+                <button
+                  onClick={extractHairColors}
+                  disabled={isProcessing}
+                  className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white font-semibold rounded-lg transition-colors duration-200"
+                >
+                  {isProcessing ? '抽出中...' : '髪色を抽出'}
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* 手動選択エリア */}
+      {uploadedImage && selectionMode === 'manual' && (
+        <div className="mb-8 bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+          <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
+            髪の領域を選択してください
+          </h3>
+          <div className="space-y-4">
+            <div
+              ref={imageContainerRef}
+              className="relative inline-block cursor-crosshair"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={uploadedImage}
+                alt="選択用画像"
+                className="max-w-full h-auto rounded-lg border border-slate-200 dark:border-slate-600"
+              />
+              {/* 選択エリアの表示 */}
+              {selectionAreas.map((area, index) => (
+                <div
+                  key={index}
+                  className="absolute border-2 border-blue-500 bg-blue-500/20"
+                  style={{
+                    left: `${area.x * 100}%`,
+                    top: `${area.y * 100}%`,
+                    width: `${area.width * 100}%`,
+                    height: `${area.height * 100}%`,
+                  }}
+                >
+                  <button
+                    onClick={() => removeSelectionArea(index)}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-colors duration-200"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectionAreas([])}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+              >
+                全て削除
+              </button>
+              <p className="text-sm text-slate-600 dark:text-slate-300 self-center">
+                ドラッグして髪の領域を選択してください
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 元画像とピン表示 */}
       {uploadedImage && extractedColors && (
@@ -470,17 +630,17 @@ export default function HairColorExtractor() {
           <div>
             <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-2">抽出機能</h5>
             <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
-              <li>• イラストから髪色を自動抽出します</li>
+              <li>• <b>自動抽出</b>：画像全体から髪色を自動検出</li>
+              <li>• <b>手動選択</b>：髪の領域をドラッグして指定</li>
               <li>• K-meansクラスタリングで代表色を抽出</li>
-              <li>• 明度・彩度・色相で役割を分類</li>
               <li>• ピンをクリックするとHEX値をコピー</li>
             </ul>
           </div>
           <div>
             <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-2">注意事項</h5>
             <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
+              <li>• 手動選択の方が精度が高いです</li>
               <li>• 髪が明確に描かれている画像を使用</li>
-              <li>• 背景がシンプルな画像が精度が高い</li>
               <li>• 抽出結果は参考程度にお使いください</li>
               <li>• 著作権にご注意ください</li>
             </ul>
