@@ -31,7 +31,7 @@ export default function Home() {
       if (!res.ok) throw new Error('API呼び出しに失敗しました');
       const data = await res.json();
       setPalette(data.palette || []);
-    } catch (e) {
+    } catch {
       alert('パレット生成APIの呼び出しに失敗しました');
     }
   };
@@ -190,62 +190,9 @@ export default function Home() {
   );
 }
 
-// カラーパレット生成関数
-// ベースカラーから補色・類似色・トライアドを自動生成
-function generateColorPalette(baseColor: string): string[] {
-  const colors = [baseColor];
 
-  // 補色を追加
-  const complementary = getComplementaryColor(baseColor);
-  colors.push(complementary);
 
-  // 類似色（30度ずつ）を追加
-  const analogous1 = getAnalogousColor(baseColor, 30);
-  const analogous2 = getAnalogousColor(baseColor, -30);
-  colors.push(analogous1, analogous2);
 
-  // トライアド（120度ずつ）を追加
-  const triadic1 = getTriadicColor(baseColor, 120);
-  const triadic2 = getTriadicColor(baseColor, 240);
-  colors.push(triadic1, triadic2);
-
-  return colors.slice(0, 6); // 最大6色まで
-}
-
-// 補色を取得する関数
-function getComplementaryColor(hex: string): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-
-  const complementary = {
-    r: Math.max(0, Math.min(255, 255 - rgb.r)),
-    g: Math.max(0, Math.min(255, 255 - rgb.g)),
-    b: Math.max(0, Math.min(255, 255 - rgb.b))
-  };
-
-  const result = rgbToHex(complementary.r, complementary.g, complementary.b);
-  return result || hex; // 変換失敗時は元の色を返す
-}
-
-// 類似色を取得する関数
-function getAnalogousColor(hex: string, angle: number): string {
-  const hsl = hexToHsl(hex);
-  if (!hsl) return hex;
-
-  const newHue = (hsl.h + angle + 360) % 360;
-  const result = hslToHex(newHue, hsl.s, hsl.l);
-  return result || hex; // 変換失敗時は元の色を返す
-}
-
-// トライアドカラーを取得する関数
-function getTriadicColor(hex: string, angle: number): string {
-  const hsl = hexToHsl(hex);
-  if (!hsl) return hex;
-
-  const newHue = (hsl.h + angle + 360) % 360;
-  const result = hslToHex(newHue, hsl.s, hsl.l);
-  return result || hex; // 変換失敗時は元の色を返す
-}
 
 // HEXカラーをRGBオブジェクトに変換
 function hexToRgb(hex: string) {

@@ -65,7 +65,7 @@ function kMeansClustering(colors: { r: number, g: number, b: number }[], k: numb
   if (colors.length === 0) return [];
 
   // 初期クラスタ中心をランダムに選択
-  const centers = [];
+  const centers: { r: number, g: number, b: number }[] = [];
   for (let i = 0; i < k; i++) {
     const randomIndex = Math.floor(Math.random() * colors.length);
     centers.push({ ...colors[randomIndex] });
@@ -311,6 +311,7 @@ export default function HairColorExtractor() {
           />
           {uploadedImage && (
             <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={uploadedImage}
                 alt="アップロードされた画像"
