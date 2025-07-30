@@ -6,6 +6,8 @@ import { useState } from 'react';
 import ColorPicker from './components/ColorPicker';
 import ColorPalette from './components/ColorPalette';
 import SavedPalettes from './components/SavedPalettes';
+import HairColorHelper from './components/HairColorHelper';
+import HairColorExtractor from './components/HairColorExtractor';
 
 // Homeコンポーネント：カラーパレット作成ツールのメイン画面
 export default function Home() {
@@ -15,6 +17,8 @@ export default function Home() {
   const [palette, setPalette] = useState<string[]>([]);
   // 保存されたパレットのリスト
   const [savedPalettes, setSavedPalettes] = useState<string[][]>([]);
+  // 現在のタブ
+  const [activeTab, setActiveTab] = useState<'palette' | 'hair' | 'extractor'>('palette');
 
   // パレットを生成する関数（API呼び出し版）
   const generatePalette = async () => {
@@ -27,7 +31,7 @@ export default function Home() {
       if (!res.ok) throw new Error('API呼び出しに失敗しました');
       const data = await res.json();
       setPalette(data.palette || []);
-    } catch (e) {
+    } catch {
       alert('パレット生成APIの呼び出しに失敗しました');
     }
   };
@@ -58,69 +62,127 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="mb-8 text-center">
-          <div className="inline-block bg-white/80 dark:bg-slate-800/80 rounded-xl px-6 py-4 shadow-md">
-            <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-1">色理論のヒント</h3>
-            <ul className="text-slate-600 dark:text-slate-300 text-sm list-disc list-inside space-y-1 text-left">
-              <li><b>補色</b>：基準色の反対側の色。コントラストが強く、目立つ配色。</li>
-              <li><b>類似色</b>：基準色の近くの色。調和がとれた落ち着いた印象。</li>
-              <li><b>トライアド</b>：色相環で120度離れた3色。バランスの良い配色。</li>
-              <li>色をクリックするとHEX値をコピーできます！</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
-              カラー選択 <span className="text-xl">🎯</span>
-            </h2>
-            <ColorPicker
-              currentColor={currentColor}
-              onColorChange={setCurrentColor}
-            />
-            <div className="mt-6 space-y-4">
+        {/* タブ切り替え */}
+        <div className="mb-8">
+          <div className="flex justify-center">
+            <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl p-1 shadow-md">
               <button
-                onClick={generatePalette}
-                className="w-full bg-gradient-to-r from-blue-500 via-pink-400 to-yellow-400 hover:from-blue-600 hover:via-pink-500 hover:to-yellow-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg scale-100 hover:scale-105 animate-pulse"
+                onClick={() => setActiveTab('palette')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'palette'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
               >
-                パレットを生成 ✨
+                🎨 カラーパレット作成
               </button>
-              {palette.length > 0 && (
-                <button
-                  onClick={savePalette}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
-                >
-                  パレットを保存
-                </button>
-              )}
+              <button
+                onClick={() => setActiveTab('hair')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'hair'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                💇‍♀️ 髪の色選びヘルパー
+              </button>
+              <button
+                onClick={() => setActiveTab('extractor')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'extractor'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                🔍 髪色抽出ツール
+              </button>
             </div>
           </div>
-
-          <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
-              生成されたパレット <span className="text-xl">🌈</span>
-            </h2>
-            {palette.length > 0 ? (
-              <ColorPalette colors={palette} />
-            ) : (
-              <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                <div className="text-6xl mb-4 animate-bounce">🎨</div>
-                <p>カラーを選択してパレットを生成してください</p>
-              </div>
-            )}
-          </div>
         </div>
 
-        {savedPalettes.length > 0 && (
-          <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
-              保存されたパレット <span className="text-xl">💾</span>
-            </h2>
-            <SavedPalettes
-              palettes={savedPalettes}
-              onDelete={deletePalette}
-            />
+        {activeTab === 'palette' && (
+          <>
+            <div className="mb-8 text-center">
+              <div className="inline-block bg-white/80 dark:bg-slate-800/80 rounded-xl px-6 py-4 shadow-md">
+                <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-1">色理論のヒント</h3>
+                <ul className="text-slate-600 dark:text-slate-300 text-sm list-disc list-inside space-y-1 text-left">
+                  <li><b>補色</b>：基準色の反対側の色。コントラストが強く、目立つ配色。</li>
+                  <li><b>類似色</b>：基準色の近くの色。調和がとれた落ち着いた印象。</li>
+                  <li><b>トライアド</b>：色相環で120度離れた3色。バランスの良い配色。</li>
+                  <li>色をクリックするとHEX値をコピーできます！</li>
+                </ul>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'palette' && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
+                <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+                  カラー選択 <span className="text-xl">🎯</span>
+                </h2>
+                <ColorPicker
+                  currentColor={currentColor}
+                  onColorChange={setCurrentColor}
+                />
+                <div className="mt-6 space-y-4">
+                  <button
+                    onClick={generatePalette}
+                    className="w-full bg-gradient-to-r from-blue-500 via-pink-400 to-yellow-400 hover:from-blue-600 hover:via-pink-500 hover:to-yellow-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg scale-100 hover:scale-105 animate-pulse"
+                  >
+                    パレットを生成 ✨
+                  </button>
+                  {palette.length > 0 && (
+                    <button
+                      onClick={savePalette}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+                    >
+                      パレットを保存
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
+                <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+                  生成されたパレット <span className="text-xl">🌈</span>
+                </h2>
+                {palette.length > 0 ? (
+                  <ColorPalette colors={palette} />
+                ) : (
+                  <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                    <div className="text-6xl mb-4 animate-bounce">🎨</div>
+                    <p>カラーを選択してパレットを生成してください</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {savedPalettes.length > 0 && (
+              <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
+                <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+                  保存されたパレット <span className="text-xl">💾</span>
+                </h2>
+                <SavedPalettes
+                  palettes={savedPalettes}
+                  onDelete={deletePalette}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'hair' && (
+          <div className="mb-12">
+            <HairColorHelper />
+          </div>
+        )}
+
+        {activeTab === 'extractor' && (
+          <div className="mb-12">
+            <HairColorExtractor />
           </div>
         )}
       </div>
@@ -128,62 +190,9 @@ export default function Home() {
   );
 }
 
-// カラーパレット生成関数
-// ベースカラーから補色・類似色・トライアドを自動生成
-function generateColorPalette(baseColor: string): string[] {
-  const colors = [baseColor];
 
-  // 補色を追加
-  const complementary = getComplementaryColor(baseColor);
-  colors.push(complementary);
 
-  // 類似色（30度ずつ）を追加
-  const analogous1 = getAnalogousColor(baseColor, 30);
-  const analogous2 = getAnalogousColor(baseColor, -30);
-  colors.push(analogous1, analogous2);
 
-  // トライアド（120度ずつ）を追加
-  const triadic1 = getTriadicColor(baseColor, 120);
-  const triadic2 = getTriadicColor(baseColor, 240);
-  colors.push(triadic1, triadic2);
-
-  return colors.slice(0, 6); // 最大6色まで
-}
-
-// 補色を取得する関数
-function getComplementaryColor(hex: string): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-
-  const complementary = {
-    r: Math.max(0, Math.min(255, 255 - rgb.r)),
-    g: Math.max(0, Math.min(255, 255 - rgb.g)),
-    b: Math.max(0, Math.min(255, 255 - rgb.b))
-  };
-
-  const result = rgbToHex(complementary.r, complementary.g, complementary.b);
-  return result || hex; // 変換失敗時は元の色を返す
-}
-
-// 類似色を取得する関数
-function getAnalogousColor(hex: string, angle: number): string {
-  const hsl = hexToHsl(hex);
-  if (!hsl) return hex;
-
-  const newHue = (hsl.h + angle + 360) % 360;
-  const result = hslToHex(newHue, hsl.s, hsl.l);
-  return result || hex; // 変換失敗時は元の色を返す
-}
-
-// トライアドカラーを取得する関数
-function getTriadicColor(hex: string, angle: number): string {
-  const hsl = hexToHsl(hex);
-  if (!hsl) return hex;
-
-  const newHue = (hsl.h + angle + 360) % 360;
-  const result = hslToHex(newHue, hsl.s, hsl.l);
-  return result || hex; // 変換失敗時は元の色を返す
-}
 
 // HEXカラーをRGBオブジェクトに変換
 function hexToRgb(hex: string) {
