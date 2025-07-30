@@ -7,6 +7,7 @@ import ColorPicker from './components/ColorPicker';
 import ColorPalette from './components/ColorPalette';
 import SavedPalettes from './components/SavedPalettes';
 import HairColorHelper from './components/HairColorHelper';
+import HairColorExtractor from './components/HairColorExtractor';
 
 // Homeコンポーネント：カラーパレット作成ツールのメイン画面
 export default function Home() {
@@ -17,7 +18,7 @@ export default function Home() {
   // 保存されたパレットのリスト
   const [savedPalettes, setSavedPalettes] = useState<string[][]>([]);
   // 現在のタブ
-  const [activeTab, setActiveTab] = useState<'palette' | 'hair'>('palette');
+  const [activeTab, setActiveTab] = useState<'palette' | 'hair' | 'extractor'>('palette');
 
   // パレットを生成する関数（API呼び出し版）
   const generatePalette = async () => {
@@ -84,6 +85,16 @@ export default function Home() {
                 }`}
               >
                 💇‍♀️ 髪の色選びヘルパー
+              </button>
+              <button
+                onClick={() => setActiveTab('extractor')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'extractor'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                🔍 髪色抽出ツール
               </button>
             </div>
           </div>
@@ -166,6 +177,12 @@ export default function Home() {
         {activeTab === 'hair' && (
           <div className="mb-12">
             <HairColorHelper />
+          </div>
+        )}
+
+        {activeTab === 'extractor' && (
+          <div className="mb-12">
+            <HairColorExtractor />
           </div>
         )}
       </div>
