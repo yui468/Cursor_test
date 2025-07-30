@@ -16,60 +16,8 @@ interface HairColorSet {
   accent: HairColorVariant;
 }
 
-// 髪色の種類とその特徴
-const hairColorTypes = [
-  {
-    name: 'ブロンド',
-    baseColor: '#F4E4BC',
-    description: '明るく清潔感のある印象。金髪のキャラクターに最適。',
-    imageUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&h=200&fit=crop&crop=face'
-  },
-  {
-    name: 'ブラウン',
-    baseColor: '#8B4513',
-    description: '自然で親しみやすい印象。多くのキャラクターに適している。',
-    imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=200&fit=crop&crop=face'
-  },
-  {
-    name: 'レッド',
-    baseColor: '#DC143C',
-    description: '情熱的で目立つ印象。個性的なキャラクターに最適。',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop&crop=face'
-  },
-  {
-    name: 'ブラック',
-    baseColor: '#2F2F2F',
-    description: '神秘的な印象。クールで知的なキャラクターに最適。',
-    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=200&fit=crop&crop=face'
-  },
-  {
-    name: 'ピンク',
-    baseColor: '#FF69B4',
-    description: '可愛らしく夢想的な印象。ファンタジー系キャラクターに最適。',
-    imageUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=300&h=200&fit=crop&crop=face'
-  },
-  {
-    name: 'ブルー',
-    baseColor: '#4682B4',
-    description: '冷静で知的な印象。サイエンスフィクション系キャラクターに最適。',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop&crop=face'
-  },
-  {
-    name: 'パステル',
-    baseColor: '#FFE4E1',
-    description: '優しく柔らかい印象。癒し系キャラクターに最適。',
-    imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=200&fit=crop&crop=face'
-  },
-  {
-    name: 'カスタム',
-    baseColor: '#3B82F6',
-    description: '自由にベースカラーを選択して髪色を作成。',
-    imageUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&h=200&fit=crop&crop=face'
-  }
-];
-
 // ベースカラーから髪色セットを生成する関数
-function generateHairColorSet(baseColor: string, typeName: string): HairColorSet {
+function generateHairColorSet(baseColor: string): HairColorSet {
   const hsl = hexToHsl(baseColor);
   if (!hsl) {
     // フォールバック用のデフォルト色
@@ -82,47 +30,10 @@ function generateHairColorSet(baseColor: string, typeName: string): HairColorSet
     };
   }
 
-  // 髪色タイプに応じて調整
-  let saturationMultiplier = 1;
-  let lightnessRange = 0.3;
-  
-  switch (typeName) {
-    case 'ブロンド':
-      saturationMultiplier = 0.6;
-      lightnessRange = 0.4;
-      break;
-    case 'ブラウン':
-      saturationMultiplier = 0.8;
-      lightnessRange = 0.25;
-      break;
-    case 'レッド':
-      saturationMultiplier = 1.2;
-      lightnessRange = 0.3;
-      break;
-    case 'ブラック':
-      saturationMultiplier = 0.3;
-      lightnessRange = 0.15;
-      break;
-    case 'ピンク':
-      saturationMultiplier = 1.1;
-      lightnessRange = 0.35;
-      break;
-    case 'ブルー':
-      saturationMultiplier = 0.9;
-      lightnessRange = 0.3;
-      break;
-    case 'パステル':
-      saturationMultiplier = 0.4;
-      lightnessRange = 0.45;
-      break;
-    default:
-      saturationMultiplier = 1;
-      lightnessRange = 0.3;
-  }
-
   // 各バリエーションを生成
-  const baseSaturation = Math.min(100, hsl.s * saturationMultiplier);
+  const baseSaturation = hsl.s;
   const baseLightness = hsl.l;
+  const lightnessRange = 0.3;
 
   // 一影（最も暗い）
   const shadow1Lightness = Math.max(5, baseLightness - lightnessRange * 100);
@@ -173,8 +84,7 @@ function generateHairColorSet(baseColor: string, typeName: string): HairColorSet
 }
 
 export default function HairColorHelper() {
-  const [selectedType, setSelectedType] = useState<string>('ブロンド');
-  const [customBaseColor, setCustomBaseColor] = useState<string>('#3B82F6');
+  const [baseColor, setBaseColor] = useState<string>('#F4E4BC');
   const [selectedColor, setSelectedColor] = useState<string>('');
 
   const copyToClipboard = (color: string) => {
@@ -186,9 +96,7 @@ export default function HairColorHelper() {
     setTimeout(() => document.body.removeChild(element), 2000);
   };
 
-  const currentType = hairColorTypes.find(type => type.name === selectedType);
-  const baseColor = selectedType === 'カスタム' ? customBaseColor : (currentType?.baseColor || '#3B82F6');
-  const hairColorSet = generateHairColorSet(baseColor, selectedType);
+  const hairColorSet = generateHairColorSet(baseColor);
 
   return (
     <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-lg p-6">
@@ -196,149 +104,135 @@ export default function HairColorHelper() {
         髪の色選びヘルパー <span className="text-xl">💇‍♀️</span>
       </h2>
       
-      {/* 髪色タイプ選択 */}
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-3">
-          髪色のタイプ
+      {/* ベースカラー選択 */}
+      <div className="mb-8 bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+        <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
+          ベースカラーを選択
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {hairColorTypes.map((type) => (
-            <button
-              key={type.name}
-              onClick={() => setSelectedType(type.name)}
-              className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                selectedType === type.name
-                  ? 'bg-blue-500 text-white shadow-lg scale-105'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600'
-              }`}
+        <div className="flex items-center gap-4">
+          <input
+            type="color"
+            value={baseColor}
+            onChange={(e) => setBaseColor(e.target.value)}
+            className="w-20 h-20 rounded-lg border-2 border-slate-300 dark:border-slate-600 cursor-pointer shadow-md"
+          />
+          <div>
+            <p className="font-mono text-xl text-slate-700 dark:text-slate-200 font-bold">
+              {baseColor}
+            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              色をクリックしてベースカラーを変更してください
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 生成された髪色セット */}
+      <div className="mb-8">
+        <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
+          生成された髪色セット
+        </h3>
+        <div className="grid grid-cols-5 gap-2">
+          {Object.entries(hairColorSet).map(([key, variant]) => (
+            <div
+              key={key}
+              className="group cursor-pointer bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 border-2 border-transparent hover:border-blue-400"
+              onClick={() => {
+                setSelectedColor(variant.color);
+                copyToClipboard(variant.color);
+              }}
             >
-              {type.name}
-            </button>
+              <div
+                className="w-full h-24 rounded-lg shadow-md mb-3 border border-slate-200 dark:border-slate-600"
+                style={{ backgroundColor: variant.color }}
+              />
+              <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-1 text-center">
+                {variant.name}
+              </h5>
+              <p className="text-xs font-mono text-slate-600 dark:text-slate-300 mb-2 text-center">
+                {variant.color}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-center">
+                {variant.description}
+              </p>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* カスタムカラー選択 */}
-      {selectedType === 'カスタム' && (
-        <div className="mb-6 bg-slate-50 dark:bg-slate-700 rounded-xl p-4">
-          <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-3">
-            ベースカラーを選択
+      {/* 色の並び順表示 */}
+      <div className="mb-8 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700 dark:to-blue-900/20 rounded-xl p-6 border border-slate-200 dark:border-slate-600">
+        <h3 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
+          色の並び順（使用順序）
+        </h3>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          {Object.entries(hairColorSet).map(([key, variant], index) => (
+            <div key={key} className="flex flex-col items-center">
+              <div
+                className="w-16 h-16 rounded-lg shadow-md border-2 border-slate-300 dark:border-slate-600"
+                style={{ backgroundColor: variant.color }}
+              />
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-200 mt-2">
+                {index + 1}. {variant.name}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-slate-600 dark:text-slate-300 text-center">
+          左から右の順番で使用すると自然な髪色になります
+        </p>
+      </div>
+
+      {/* 選択された色の詳細 */}
+      {selectedColor && (
+        <div className="mb-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
+          <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4">
+            選択された色
           </h4>
           <div className="flex items-center gap-4">
-            <input
-              type="color"
-              value={customBaseColor}
-              onChange={(e) => setCustomBaseColor(e.target.value)}
-              className="w-16 h-16 rounded-lg border-2 border-slate-300 dark:border-slate-600 cursor-pointer"
+            <div
+              className="w-20 h-20 rounded-lg shadow-md border-2 border-blue-400"
+              style={{ backgroundColor: selectedColor }}
             />
             <div>
-              <p className="font-mono text-lg text-slate-700 dark:text-slate-200">
-                {customBaseColor}
+              <p className="font-mono text-xl text-slate-700 dark:text-slate-200 font-bold">
+                {selectedColor}
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-300">
-                色をクリックしてベースカラーを変更
+                この色をキャラクターの髪色として使用できます
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {currentType && (
-        <div className="space-y-6">
-          {/* イメージ表示 */}
-          <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4">
-            <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-3">
-              {currentType.name}のイメージ
-            </h4>
-            <div className="flex items-center gap-4">
-              <img
-                src={currentType.imageUrl}
-                alt={`${currentType.name}の髪色のイメージ`}
-                className="w-24 h-24 rounded-lg object-cover shadow-md"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-              <div className="flex-1">
-                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                  {currentType.description}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* 生成された髪色セット */}
+      {/* 使用のヒント */}
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
+        <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+          💡 使用のヒント
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-3">
-              生成された髪色セット
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {Object.entries(hairColorSet).map(([key, variant]) => (
-                <div
-                  key={key}
-                  className="group cursor-pointer bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200"
-                  onClick={() => {
-                    setSelectedColor(variant.color);
-                    copyToClipboard(variant.color);
-                  }}
-                >
-                  <div
-                    className="w-full h-20 rounded-lg shadow-md border-2 border-transparent group-hover:border-blue-400 transition-all duration-200 mb-3"
-                    style={{ backgroundColor: variant.color }}
-                  />
-                  <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-1">
-                    {variant.name}
-                  </h5>
-                  <p className="text-xs font-mono text-slate-600 dark:text-slate-300 mb-2">
-                    {variant.color}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    {variant.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 選択された色の詳細 */}
-          {selectedColor && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
-              <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-3">
-                選択された色
-              </h4>
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-16 h-16 rounded-lg shadow-md border-2 border-blue-400"
-                  style={{ backgroundColor: selectedColor }}
-                />
-                <div>
-                  <p className="font-mono text-lg text-slate-700 dark:text-slate-200">
-                    {selectedColor}
-                  </p>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    この色をキャラクターの髪色として使用できます
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 使用のヒント */}
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700">
-            <h4 className="text-lg font-medium text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
-              💡 使用のヒント
-            </h4>
+            <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-2">色の役割</h5>
             <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
               <li>• <b>ベース</b>：髪の大部分に使用するメインカラー</li>
               <li>• <b>一影</b>：髪の重なりや奥の部分で最も暗い影</li>
               <li>• <b>二影</b>：立体感を表現する中間の影</li>
               <li>• <b>ハイライト</b>：光が当たる部分で最も明るい色</li>
               <li>• <b>アクセント</b>：髪の流れや装飾に使用する差し色</li>
-              <li>• 色をクリックするとHEX値をコピーできます！</li>
+            </ul>
+          </div>
+          <div>
+            <h5 className="font-medium text-slate-700 dark:text-slate-200 mb-2">使用方法</h5>
+            <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
+              <li>• 色をクリックするとHEX値をコピーできます</li>
+              <li>• ベースカラーを変更すると全ての色が自動調整されます</li>
+              <li>• 左から右の順番で使用すると自然な髪色になります</li>
+              <li>• イラストソフトでレイヤー分けして使用することをおすすめ</li>
             </ul>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
