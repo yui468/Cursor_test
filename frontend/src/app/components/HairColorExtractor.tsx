@@ -383,7 +383,7 @@ export default function HairColorExtractor() {
             />
             {/* ピンの表示 */}
             {Object.entries(extractedColors).map(([key, color]) => (
-              color.samplePoints.map((point, index) => (
+              color.samplePoints.map((point: { x: number; y: number }, index: number) => (
                 <div
                   key={`${key}-${index}`}
                   className="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg transform -translate-x-2 -translate-y-2 cursor-pointer hover:scale-125 transition-transform duration-200"
