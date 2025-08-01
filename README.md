@@ -1,22 +1,35 @@
-# Full-Stack Application
+# 日本酒おすすめアプリ 🍶
 
-TypeScript + React/Next.js フロントエンドと Java + Spring Boot バックエンドのフルスタックアプリケーション
+あなたの好みに合わせて、ぴったりの日本酒をおすすめするWebアプリケーションです。
 
-## プロジェクト構成
+## 機能
 
-```
-project-root/
-├── frontend/          # TypeScript + React/Next.js
-├── backend/           # Java + Spring Boot
-├── shared/            # 共有型定義など
-└── docs/              # ドキュメント
-    ├── DEVELOPMENT.md # 開発ルール・ガイドライン
-    └── CONTRIBUTING.md # コントリビューションガイド
-```
+- **好みの入力**: 味わい、甘さ、酸味、価格、シーン、経験レベルを選択
+- **日本酒推薦**: 入力された好みに基づいて最適な日本酒を推薦
+- **詳細情報**: 各日本酒の詳細な情報、飲み方、料理との相性を表示
+- **レスポンシブデザイン**: モバイル・デスクトップ両対応
+
+## 技術スタック
+
+### フロントエンド
+- **Next.js 15**: React ベースのフルスタックフレームワーク
+- **TypeScript**: 型安全性の確保
+- **Tailwind CSS 4**: モダンなスタイリング
+- **React 19**: 最新のReact機能
+
+### バックエンド
+- **Spring Boot**: Java ベースのWebアプリケーションフレームワーク
+- **RESTful API**: 日本酒推薦API
+- **Swagger**: API ドキュメント
 
 ## セットアップ
 
-### フロントエンド (TypeScript + Next.js)
+### 前提条件
+- Node.js 18+
+- Java 17+
+- npm または yarn
+
+### フロントエンドの起動
 
 ```bash
 cd frontend
@@ -24,71 +37,112 @@ npm install
 npm run dev
 ```
 
-フロントエンドは http://localhost:3000 で起動します。
+フロントエンドは `http://localhost:3000` で起動します。
 
-### バックエンド (Java + Spring Boot)
+### バックエンドの起動
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-バックエンドは http://localhost:8080 で起動します。
+バックエンドは `http://localhost:8080` で起動します。
 
-H2データベースコンソール: http://localhost:8080/h2-console
+## API エンドポイント
 
-**Swagger API ドキュメント**: http://localhost:8080/swagger-ui.html
+### 日本酒推薦
+```
+POST /api/sake/recommend
+```
+
+**リクエスト例:**
+```json
+{
+  "flavor": "フルーティ",
+  "sweetness": "中辛口",
+  "acidity": "中程度",
+  "price": "1000-3000円",
+  "occasion": "晩酌",
+  "experience": "中級者"
+}
+```
+
+### 全日本酒取得
+```
+GET /api/sake/all
+```
+
+### 日本酒詳細取得
+```
+GET /api/sake/{id}
+```
+
+## 日本酒の種類
+
+- **大吟醸**: 精米歩合50%以下。フルーティで華やかな香り
+- **吟醸酒**: 精米歩合60%以下。上品で洗練された味わい
+- **純米酒**: 米と麹のみで醸造。米の旨味が特徴
+- **本醸造酒**: 醸造アルコールを添加。すっきりとした味わい
+
+## 味わいの特徴
+
+- **フルーティ**: 果実のような華やかな香り
+- **すっきり**: 清涼感のある香り
+- **上品**: 洗練された上品な香り
+- **米の旨味**: 米の旨味が豊富
+- **華やか**: 豊かな香りが特徴
 
 ## 開発
 
 ### フロントエンド開発
-
-- Next.js 15.4.2
-- React 19.1.0
-- TypeScript
-- Tailwind CSS
-
-### バックエンド開発
-
-- Spring Boot 3.2.0
-- Java 17
-- Spring Data JPA
-- H2 Database (開発用)
-- Spring Validation
-- **Swagger/OpenAPI 3.0** - API ドキュメント自動生成
-
-## スクリプト
-
-### 全体の開発サーバー起動
-
 ```bash
-# バックエンド起動
-cd backend && ./mvnw spring-boot:run &
-
-# フロントエンド起動
-cd frontend && npm run dev
+cd frontend
+npm run dev
 ```
 
-## 技術スタック
+### バックエンド開発
+```bash
+cd backend
+./mvnw spring-boot:run
+```
 
-### フロントエンド
-- **Framework**: Next.js 15.4.2
-- **Language**: TypeScript
-- **UI Library**: React 19.1.0
-- **Styling**: Tailwind CSS
-- **Linting**: ESLint
+### テスト
+```bash
+# フロントエンド
+cd frontend
+npm run test
 
-### バックエンド
-- **Framework**: Spring Boot 3.2.0
-- **Language**: Java 17
-- **Database**: H2 (開発用)
-- **ORM**: Spring Data JPA
-- **Build Tool**: Maven
-- **API Documentation**: Swagger/OpenAPI 3.0
+# バックエンド
+cd backend
+./mvnw test
+```
 
-## 開発ルール・ガイドライン
+## デプロイ
 
-開発ルールとガイドラインは以下のドキュメントを参照してください：
+### Vercel (フロントエンド)
+```bash
+cd frontend
+vercel
+```
 
-- **[開発ルール・ガイドライン](docs/DEVELOPMENT.md)** - コーディング規約、Git運用、テスト方針など
-- **[コントリビューションガイド](docs/CONTRIBUTING.md)** - 開発フロー、プルリクエスト、レビュープロセスなど
+### Railway (バックエンド)
+```bash
+cd backend
+railway up
+```
+
+## ライセンス
+
+MIT License
+
+## 貢献
+
+プルリクエストやイシューの報告を歓迎します！
+
+## 更新履歴
+
+- v1.0.0: 初期リリース
+  - 日本酒推薦機能
+  - 好み入力フォーム
+  - 詳細情報表示
+  - レスポンシブデザイン
