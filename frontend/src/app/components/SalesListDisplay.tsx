@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SalesListResponse, Prospect } from '../types/sales';
+import { SalesListResponse, Prospect, CompanyInfo } from '../types/sales';
 
 interface SalesListDisplayProps {
   salesList: SalesListResponse;
@@ -9,6 +9,7 @@ interface SalesListDisplayProps {
 
 export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null);
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
 
   const getRelevanceColor = (score: number) => {
     if (score >= 0.8) return 'text-green-600 bg-green-100';
@@ -18,6 +19,138 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('ja-JP');
+  };
+
+  const toggleCompanyExpansion = (companyName: string) => {
+    const newExpanded = new Set(expandedCompanies);
+    if (newExpanded.has(companyName)) {
+      newExpanded.delete(companyName);
+    } else {
+      newExpanded.add(companyName);
+    }
+    setExpandedCompanies(newExpanded);
+  };
+
+  const CompanyInfoAccordion = ({ prospect }: { prospect: Prospect }) => {
+    const isExpanded = expandedCompanies.has(prospect.companyName);
+    const hasCompanyInfo = prospect.companyInfo;
+
+    return (
+      <div className="border-t border-gray-200 pt-4 mt-4">
+        <button
+          onClick={() => toggleCompanyExpansion(prospect.companyName)}
+          className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900"
+        >
+          <span className="flex items-center">
+            <svg
+              className={`w-4 h-4 mr-2 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            企業詳細情報
+          </span>
+          <span className="text-xs text-gray-500">
+            {hasCompanyInfo ? '詳細あり' : '基本情報のみ'}
+          </span>
+        </button>
+
+        {isExpanded && (
+          <div className="mt-4 space-y-4">
+            {hasCompanyInfo ? (
+              <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                {/* 基本情報 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">基本情報</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">設立年:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.foundedYear}年</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">従業員数:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.employeeCount}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">売上:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.revenue}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">本社:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.headquarters}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 事業概要 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">事業概要</h4>
+                  <p className="text-sm text-gray-700 mb-3">{prospect.companyInfo.description}</p>
+                  
+                  <div className="grid grid-cols-1 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">主要製品・サービス:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.mainProducts}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">ビジネスモデル:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.businessModel}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">ターゲット市場:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.targetMarket}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 競合優位性 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">競合優位性・成長性</h4>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">競合優位性:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.competitiveAdvantage}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">成長性:</span>
+                      <p className="text-gray-800">{prospect.companyInfo.growthPotential}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 最新ニュース */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">最新ニュース</h4>
+                  <p className="text-sm text-gray-700">{prospect.companyInfo.recentNews}</p>
+                </div>
+
+                {/* 外部リンク */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">外部リンク</h4>
+                  <a
+                    href={prospect.companyInfo.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-sm underline"
+                  >
+                    {prospect.companyInfo.website}
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800 text-sm">
+                  この企業の詳細情報は現在データベースに登録されていません。
+                  基本情報のみ表示しています。
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -41,8 +174,7 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
           {salesList.prospects.map((prospect, index) => (
             <div
               key={index}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedProspect(prospect)}
+              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-2">
                 <h4 className="text-lg font-semibold text-gray-800">
@@ -68,13 +200,16 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
                 </div>
               </div>
               
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-gray-700 mb-3">
                 <span className="font-medium">選定理由:</span> {prospect.reasoning}
               </div>
               
-              <div className="mt-2 text-xs text-gray-500">
+              <div className="text-xs text-gray-500 mb-3">
                 ニュースソース: {prospect.newsSource}
               </div>
+
+              {/* アコーディオン形式の企業情報 */}
+              <CompanyInfoAccordion prospect={prospect} />
             </div>
           ))}
         </div>
@@ -131,6 +266,35 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
                   <span className="font-medium text-gray-700">ニュースソース:</span>
                   <p className="text-gray-900 mt-1">{selectedProspect.newsSource}</p>
                 </div>
+
+                {/* 企業詳細情報 */}
+                {selectedProspect.companyInfo && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">企業詳細情報</h4>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div>
+                        <span className="font-medium text-gray-600">設立年:</span>
+                        <p className="text-gray-800">{selectedProspect.companyInfo.foundedYear}年</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">従業員数:</span>
+                        <p className="text-gray-800">{selectedProspect.companyInfo.employeeCount}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">売上:</span>
+                        <p className="text-gray-800">{selectedProspect.companyInfo.revenue}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">本社:</span>
+                        <p className="text-gray-800">{selectedProspect.companyInfo.headquarters}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">事業概要:</span>
+                        <p className="text-gray-800">{selectedProspect.companyInfo.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="mt-6 flex justify-end space-x-3">

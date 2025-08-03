@@ -27,6 +27,9 @@ public class Prospect {
     @JsonProperty("newsSource")
     private String newsSource;
     
+    @JsonProperty("companyInfo")
+    private CompanyInfo companyInfo;
+    
     public Prospect() {}
     
     public Prospect(String companyName, String industry, String contactPerson, String email, 
@@ -39,6 +42,20 @@ public class Prospect {
         this.relevanceScore = relevanceScore;
         this.reasoning = reasoning;
         this.newsSource = newsSource;
+    }
+    
+    public Prospect(String companyName, String industry, String contactPerson, String email, 
+                   String phone, Double relevanceScore, String reasoning, String newsSource, 
+                   CompanyInfo companyInfo) {
+        this.companyName = companyName;
+        this.industry = industry;
+        this.contactPerson = contactPerson;
+        this.email = email;
+        this.phone = phone;
+        this.relevanceScore = relevanceScore;
+        this.reasoning = reasoning;
+        this.newsSource = newsSource;
+        this.companyInfo = companyInfo;
     }
     
     // Getters and Setters
@@ -104,5 +121,13 @@ public class Prospect {
     
     public void setNewsSource(String newsSource) {
         this.newsSource = newsSource;
+    }
+    
+    public CompanyInfo getCompanyInfo() {
+        return companyInfo;
+    }
+    
+    public void setCompanyInfo(CompanyInfo companyInfo) {
+        this.companyInfo = companyInfo;
     }
 }

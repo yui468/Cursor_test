@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.config.GeminiConfig;
+import com.example.backend.dto.CompanyInfo;
 import com.example.backend.dto.NewsArticle;
 import com.example.backend.dto.Prospect;
 import com.example.backend.dto.SalesListRequest;
@@ -33,6 +34,9 @@ public class GeminiSalesAgentService {
     @Autowired
     private NewsCollectorService newsCollectorService;
     
+    @Autowired
+    private CompanyInfoService companyInfoService;
+    
     public List<Prospect> generateSalesList(SalesListRequest request) {
         try {
             // 1. ニュース記事を収集
@@ -43,13 +47,30 @@ public class GeminiSalesAgentService {
             );
             
             // 2. Gemini APIを使って営業リストを生成
-            return analyzeNewsWithGemini(articles, request);
+            List<Prospect> prospects = analyzeNewsWithGemini(articles, request);
+            
+            // 3. 企業情報を追加
+            return addCompanyInfo(prospects);
             
         } catch (Exception e) {
             System.err.println("Error generating sales list: " + e.getMessage());
             e.printStackTrace();
             return generateMockProspects(request);
         }
+    }
+    
+    private List<Prospect> addCompanyInfo(List<Prospect> prospects) {
+        List<Prospect> enrichedProspects = new ArrayList<>();
+        
+        for (Prospect prospect : prospects) {
+            CompanyInfo companyInfo = companyInfoService.getCompanyInfo(prospect.getCompanyName());
+            if (companyInfo != null) {
+                prospect.setCompanyInfo(companyInfo);
+            }
+            enrichedProspects.add(prospect);
+        }
+        
+        return enrichedProspects;
     }
     
     private List<Prospect> analyzeNewsWithGemini(List<NewsArticle> articles, SalesListRequest request) {
