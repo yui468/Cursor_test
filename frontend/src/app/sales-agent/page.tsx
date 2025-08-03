@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import SalesAgentForm from '../components/SalesAgentForm';
 import SalesListDisplay from '../components/SalesListDisplay';
-import { SalesListRequest, SalesListResponse, Prospect } from '../types/sales';
+import { SalesListRequest, SalesListResponse } from '../types/sales';
 
 export default function SalesAgentPage() {
   const [salesList, setSalesList] = useState<SalesListResponse | null>(null);

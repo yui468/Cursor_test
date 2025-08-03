@@ -19,7 +19,7 @@ export default function SalesAgentForm({ onSubmit, loading }: SalesAgentFormProp
 
   const [newKeyword, setNewKeyword] = useState('');
 
-  const handleInputChange = (field: keyof SalesListRequest, value: any) => {
+  const handleInputChange = (field: keyof SalesListRequest, value: string | string[] | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

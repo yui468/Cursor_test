@@ -27,7 +27,7 @@ export default function Home() {
       if (!res.ok) throw new Error('API呼び出しに失敗しました');
       const data = await res.json();
       setPalette(data.palette || []);
-    } catch (e) {
+    } catch {
       alert('パレット生成APIの呼び出しに失敗しました');
     }
   };
@@ -139,27 +139,7 @@ export default function Home() {
   );
 }
 
-// カラーパレット生成関数
-// ベースカラーから補色・類似色・トライアドを自動生成
-function generateColorPalette(baseColor: string): string[] {
-  const colors = [baseColor];
 
-  // 補色を追加
-  const complementary = getComplementaryColor(baseColor);
-  colors.push(complementary);
-
-  // 類似色（30度ずつ）を追加
-  const analogous1 = getAnalogousColor(baseColor, 30);
-  const analogous2 = getAnalogousColor(baseColor, -30);
-  colors.push(analogous1, analogous2);
-
-  // トライアド（120度ずつ）を追加
-  const triadic1 = getTriadicColor(baseColor, 120);
-  const triadic2 = getTriadicColor(baseColor, 240);
-  colors.push(triadic1, triadic2);
-
-  return colors.slice(0, 6); // 最大6色まで
-}
 
 // 補色を取得する関数
 function getComplementaryColor(hex: string): string {
