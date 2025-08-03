@@ -15,7 +15,9 @@ export default function SalesAgentPage() {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8080/api/sales-agent/generate-sales-list', {
+      // RenderのバックエンドURLを使用
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://cursor-test-backend.onrender.com';
+      const response = await fetch(`${backendUrl}/api/sales-agent/generate-sales-list`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
