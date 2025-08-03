@@ -2,6 +2,19 @@
 
 TypeScript + React/Next.js フロントエンドと Java + Spring Boot バックエンドのフルスタックアプリケーション
 
+## 機能
+
+### 🎨 カラーパレット作成ツール
+- 色理論に基づいた美しいカラーパレットの自動生成
+- パレットの保存・管理機能
+- 直感的なカラー選択インターフェース
+
+### 🤖 AI営業リスト作成エージェント
+- Gemini AIを使用したニュース記事分析
+- 営業対象企業の自動選定
+- 関連性スコアによる優先度付け
+- 営業条件に基づいたフィルタリング
+
 ## プロジェクト構成
 
 ```
@@ -15,6 +28,15 @@ project-root/
 ```
 
 ## セットアップ
+
+### 環境変数の設定
+
+営業エージェント機能を使用するには、Gemini APIキーを設定してください：
+
+```bash
+# backend/src/main/resources/application.properties または環境変数で設定
+export GEMINI_API_KEY="your-gemini-api-key-here"
+```
 
 ### フロントエンド (TypeScript + Next.js)
 
@@ -39,6 +61,8 @@ H2データベースコンソール: http://localhost:8080/h2-console
 
 **Swagger API ドキュメント**: http://localhost:8080/swagger-ui.html
 
+**営業エージェントAPI**: http://localhost:8080/api/sales-agent
+
 ## 開発
 
 ### フロントエンド開発
@@ -56,6 +80,8 @@ H2データベースコンソール: http://localhost:8080/h2-console
 - H2 Database (開発用)
 - Spring Validation
 - **Swagger/OpenAPI 3.0** - API ドキュメント自動生成
+- **Google AI Client Libraries** - Gemini API統合
+- **Spring WebFlux** - 非同期HTTP通信
 
 ## スクリプト
 

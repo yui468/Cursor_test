@@ -56,6 +56,17 @@ export default function Home() {
           <p className="text-slate-600 dark:text-slate-300 text-lg">
             美しいカラーパレットを作成して、デザインに活用しましょう
           </p>
+          
+          {/* ナビゲーションリンク */}
+          <div className="mt-6 flex justify-center space-x-4">
+            <a
+              href="/sales-agent"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              <span className="mr-2">🤖</span>
+              AI営業リスト作成エージェント
+            </a>
+          </div>
         </header>
 
         <div className="mb-8 text-center">
