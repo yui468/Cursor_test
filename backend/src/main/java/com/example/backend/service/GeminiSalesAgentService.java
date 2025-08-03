@@ -5,6 +5,7 @@ import com.example.backend.dto.CompanyInfo;
 import com.example.backend.dto.NewsArticle;
 import com.example.backend.dto.Prospect;
 import com.example.backend.dto.SalesListRequest;
+import com.example.backend.dto.SelectionLogic;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,9 +16,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class GeminiSalesAgentService {
@@ -49,14 +48,251 @@ public class GeminiSalesAgentService {
             // 2. Gemini APIを使って営業リストを生成
             List<Prospect> prospects = analyzeNewsWithGemini(articles, request);
             
-            // 3. 企業情報を追加
-            return addCompanyInfo(prospects);
+            // 3. 企業情報と選定ロジックを追加
+            return enrichProspectsWithDetails(prospects, articles, request);
             
         } catch (Exception e) {
             System.err.println("Error generating sales list: " + e.getMessage());
             e.printStackTrace();
             return generateMockProspects(request);
         }
+    }
+    
+    private List<Prospect> enrichProspectsWithDetails(List<Prospect> prospects, List<NewsArticle> articles, SalesListRequest request) {
+        List<Prospect> enrichedProspects = new ArrayList<>();
+        
+        for (Prospect prospect : prospects) {
+            // 企業情報を追加
+            CompanyInfo companyInfo = companyInfoService.getCompanyInfo(prospect.getCompanyName());
+            if (companyInfo != null) {
+                prospect.setCompanyInfo(companyInfo);
+            }
+            
+            // 選定ロジックを生成
+            SelectionLogic selectionLogic = generateSelectionLogic(prospect, articles, request);
+            prospect.setSelectionLogic(selectionLogic);
+            
+            // 関連ニュースを追加
+            List<NewsArticle> relatedNews = findRelatedNews(prospect, articles);
+            prospect.setRelatedNews(relatedNews);
+            
+            enrichedProspects.add(prospect);
+        }
+        
+        return enrichedProspects;
+    }
+    
+    private SelectionLogic generateSelectionLogic(Prospect prospect, List<NewsArticle> articles, SalesListRequest request) {
+        // キーワードマッチング
+        List<String> keywordMatches = findKeywordMatches(prospect, request.getTargetKeywords());
+        
+        // 業界適合度
+        Double industryAlignment = calculateIndustryAlignment(prospect, request.getTargetIndustry());
+        
+        // 企業規模マッチング
+        Boolean companySizeMatch = checkCompanySizeMatch(prospect, request.getCompanySize());
+        
+        // 成長指標
+        List<String> growthIndicators = extractGrowthIndicators(prospect, articles);
+        
+        // 市場トレンド
+        List<String> marketTrends = extractMarketTrends(articles);
+        
+        // 競合要因
+        List<String> competitiveFactors = extractCompetitiveFactors(prospect, articles);
+        
+        // リスク要因
+        List<String> riskFactors = extractRiskFactors(prospect, articles);
+        
+        // 機会スコア
+        Double opportunityScore = calculateOpportunityScore(prospect, articles);
+        
+        // 決定要因
+        Map<String, Double> decisionFactors = calculateDecisionFactors(prospect, request, articles);
+        
+        // AI信頼度
+        Double aiConfidence = calculateAiConfidence(prospect, articles);
+        
+        return new SelectionLogic(
+            keywordMatches, industryAlignment, companySizeMatch,
+            growthIndicators, marketTrends, competitiveFactors,
+            riskFactors, opportunityScore, decisionFactors, aiConfidence
+        );
+    }
+    
+    private List<String> findKeywordMatches(Prospect prospect, List<String> keywords) {
+        List<String> matches = new ArrayList<>();
+        String companyName = prospect.getCompanyName().toLowerCase();
+        String reasoning = prospect.getReasoning().toLowerCase();
+        
+        for (String keyword : keywords) {
+            if (companyName.contains(keyword.toLowerCase()) || reasoning.contains(keyword.toLowerCase())) {
+                matches.add(keyword);
+            }
+        }
+        
+        return matches;
+    }
+    
+    private Double calculateIndustryAlignment(Prospect prospect, String targetIndustry) {
+        String prospectIndustry = prospect.getIndustry();
+        if (prospectIndustry.equals(targetIndustry)) {
+            return 1.0;
+        } else if (prospectIndustry.contains("IT") && targetIndustry.contains("IT")) {
+            return 0.8;
+        } else if (prospectIndustry.contains("AI") && targetIndustry.contains("AI")) {
+            return 0.9;
+        } else {
+            return 0.5;
+        }
+    }
+    
+    private Boolean checkCompanySizeMatch(Prospect prospect, String targetSize) {
+        // 企業規模の判定ロジック（実際の実装では企業情報から判定）
+        return true; // 簡易実装
+    }
+    
+    private List<String> extractGrowthIndicators(Prospect prospect, List<NewsArticle> articles) {
+        List<String> indicators = new ArrayList<>();
+        
+        // ニュース記事から成長指標を抽出
+        for (NewsArticle article : articles) {
+            String content = article.getContent().toLowerCase();
+            if (content.contains("成長") || content.contains("拡大") || content.contains("増加")) {
+                indicators.add("市場成長トレンド");
+            }
+            if (content.contains("投資") || content.contains("資金調達")) {
+                indicators.add("投資活動活発");
+            }
+            if (content.contains("新技術") || content.contains("イノベーション")) {
+                indicators.add("技術革新");
+            }
+        }
+        
+        return indicators;
+    }
+    
+    private List<String> extractMarketTrends(List<NewsArticle> articles) {
+        List<String> trends = new ArrayList<>();
+        
+        for (NewsArticle article : articles) {
+            String content = article.getContent().toLowerCase();
+            if (content.contains("ai") || content.contains("機械学習")) {
+                trends.add("AI技術の普及");
+            }
+            if (content.contains("クラウド")) {
+                trends.add("クラウド移行加速");
+            }
+            if (content.contains("デジタル変革")) {
+                trends.add("DX推進");
+            }
+        }
+        
+        return trends;
+    }
+    
+    private List<String> extractCompetitiveFactors(Prospect prospect, List<NewsArticle> articles) {
+        List<String> factors = new ArrayList<>();
+        
+        // 競合優位性を抽出
+        if (prospect.getCompanyInfo() != null) {
+            String competitiveAdvantage = prospect.getCompanyInfo().getCompetitiveAdvantage();
+            if (competitiveAdvantage.contains("独自")) {
+                factors.add("独自技術");
+            }
+            if (competitiveAdvantage.contains("特許")) {
+                factors.add("知的財産");
+            }
+            if (competitiveAdvantage.contains("実績")) {
+                factors.add("豊富な実績");
+            }
+        }
+        
+        return factors;
+    }
+    
+    private List<String> extractRiskFactors(Prospect prospect, List<NewsArticle> articles) {
+        List<String> risks = new ArrayList<>();
+        
+        // リスク要因を抽出
+        for (NewsArticle article : articles) {
+            String content = article.getContent().toLowerCase();
+            if (content.contains("競合") && content.contains("激化")) {
+                risks.add("競合激化");
+            }
+            if (content.contains("規制")) {
+                risks.add("規制リスク");
+            }
+            if (content.contains("経済") && content.contains("不安")) {
+                risks.add("経済環境の変化");
+            }
+        }
+        
+        return risks;
+    }
+    
+    private Double calculateOpportunityScore(Prospect prospect, List<NewsArticle> articles) {
+        double score = 0.5; // ベーススコア
+        
+        // ニュース記事の内容に基づいてスコアを調整
+        for (NewsArticle article : articles) {
+            String content = article.getContent().toLowerCase();
+            if (content.contains("成長") || content.contains("拡大")) {
+                score += 0.1;
+            }
+            if (content.contains("投資") || content.contains("資金調達")) {
+                score += 0.1;
+            }
+            if (content.contains("新技術") || content.contains("イノベーション")) {
+                score += 0.1;
+            }
+        }
+        
+        return Math.min(score, 1.0);
+    }
+    
+    private Map<String, Double> calculateDecisionFactors(Prospect prospect, SalesListRequest request, List<NewsArticle> articles) {
+        Map<String, Double> factors = new HashMap<>();
+        
+        factors.put("キーワード適合度", prospect.getRelevanceScore());
+        factors.put("業界適合度", calculateIndustryAlignment(prospect, request.getTargetIndustry()));
+        factors.put("市場成長性", calculateOpportunityScore(prospect, articles));
+        factors.put("技術革新性", 0.8); // 固定値（実際は動的計算）
+        factors.put("競合優位性", 0.7); // 固定値（実際は動的計算）
+        
+        return factors;
+    }
+    
+    private Double calculateAiConfidence(Prospect prospect, List<NewsArticle> articles) {
+        double confidence = 0.7; // ベース信頼度
+        
+        // ニュース記事の数に基づいて信頼度を調整
+        if (articles.size() > 2) {
+            confidence += 0.1;
+        }
+        
+        // 企業情報の有無で信頼度を調整
+        if (prospect.getCompanyInfo() != null) {
+            confidence += 0.1;
+        }
+        
+        return Math.min(confidence, 1.0);
+    }
+    
+    private List<NewsArticle> findRelatedNews(Prospect prospect, List<NewsArticle> articles) {
+        List<NewsArticle> relatedNews = new ArrayList<>();
+        String companyName = prospect.getCompanyName().toLowerCase();
+        
+        for (NewsArticle article : articles) {
+            String title = article.getTitle().toLowerCase();
+            String content = article.getContent().toLowerCase();
+            
+            if (title.contains(companyName) || content.contains(companyName)) {
+                relatedNews.add(article);
+            }
+        }
+        
+        return relatedNews;
     }
     
     private List<Prospect> addCompanyInfo(List<Prospect> prospects) {

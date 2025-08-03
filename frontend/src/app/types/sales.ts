@@ -23,6 +23,19 @@ export interface CompanyInfo {
   growthPotential: string;
 }
 
+export interface SelectionLogic {
+  keywordMatches: string[];
+  industryAlignment: number;
+  companySizeMatch: boolean;
+  growthIndicators: string[];
+  marketTrends: string[];
+  competitiveFactors: string[];
+  riskFactors: string[];
+  opportunityScore: number;
+  decisionFactors: { [key: string]: number };
+  aiConfidence: number;
+}
+
 export interface Prospect {
   companyName: string;
   industry: string;
@@ -33,6 +46,8 @@ export interface Prospect {
   reasoning: string;
   newsSource: string;
   companyInfo?: CompanyInfo;
+  selectionLogic?: SelectionLogic;
+  relatedNews?: NewsArticle[];
 }
 
 export interface SalesListResponse {

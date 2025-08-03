@@ -1,6 +1,7 @@
 package com.example.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 public class Prospect {
     @JsonProperty("companyName")
@@ -30,6 +31,12 @@ public class Prospect {
     @JsonProperty("companyInfo")
     private CompanyInfo companyInfo;
     
+    @JsonProperty("selectionLogic")
+    private SelectionLogic selectionLogic;
+    
+    @JsonProperty("relatedNews")
+    private List<NewsArticle> relatedNews;
+    
     public Prospect() {}
     
     public Prospect(String companyName, String industry, String contactPerson, String email, 
@@ -56,6 +63,22 @@ public class Prospect {
         this.reasoning = reasoning;
         this.newsSource = newsSource;
         this.companyInfo = companyInfo;
+    }
+    
+    public Prospect(String companyName, String industry, String contactPerson, String email, 
+                   String phone, Double relevanceScore, String reasoning, String newsSource, 
+                   CompanyInfo companyInfo, SelectionLogic selectionLogic, List<NewsArticle> relatedNews) {
+        this.companyName = companyName;
+        this.industry = industry;
+        this.contactPerson = contactPerson;
+        this.email = email;
+        this.phone = phone;
+        this.relevanceScore = relevanceScore;
+        this.reasoning = reasoning;
+        this.newsSource = newsSource;
+        this.companyInfo = companyInfo;
+        this.selectionLogic = selectionLogic;
+        this.relatedNews = relatedNews;
     }
     
     // Getters and Setters
@@ -129,5 +152,21 @@ public class Prospect {
     
     public void setCompanyInfo(CompanyInfo companyInfo) {
         this.companyInfo = companyInfo;
+    }
+    
+    public SelectionLogic getSelectionLogic() {
+        return selectionLogic;
+    }
+    
+    public void setSelectionLogic(SelectionLogic selectionLogic) {
+        this.selectionLogic = selectionLogic;
+    }
+    
+    public List<NewsArticle> getRelatedNews() {
+        return relatedNews;
+    }
+    
+    public void setRelatedNews(List<NewsArticle> relatedNews) {
+        this.relatedNews = relatedNews;
     }
 }
