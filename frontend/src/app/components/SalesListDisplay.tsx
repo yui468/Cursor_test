@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SalesListResponse, Prospect, CompanyInfo } from '../types/sales';
+import { SalesListResponse, Prospect } from '../types/sales';
 
 interface SalesListDisplayProps {
   salesList: SalesListResponse;
@@ -67,19 +67,19 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="font-medium text-gray-600">設立年:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.foundedYear}年</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.foundedYear}年</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">従業員数:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.employeeCount}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.employeeCount}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">売上:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.revenue}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.revenue}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">本社:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.headquarters}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.headquarters}</p>
                     </div>
                   </div>
                 </div>
@@ -87,20 +87,20 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
                 {/* 事業概要 */}
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">事業概要</h4>
-                  <p className="text-sm text-gray-700 mb-3">{prospect.companyInfo.description}</p>
+                  <p className="text-sm text-gray-700 mb-3">{prospect.companyInfo?.description}</p>
                   
                   <div className="grid grid-cols-1 gap-3 text-sm">
                     <div>
                       <span className="font-medium text-gray-600">主要製品・サービス:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.mainProducts}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.mainProducts}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">ビジネスモデル:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.businessModel}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.businessModel}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">ターゲット市場:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.targetMarket}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.targetMarket}</p>
                     </div>
                   </div>
                 </div>
@@ -111,11 +111,11 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
                   <div className="space-y-3 text-sm">
                     <div>
                       <span className="font-medium text-gray-600">競合優位性:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.competitiveAdvantage}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.competitiveAdvantage}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">成長性:</span>
-                      <p className="text-gray-800">{prospect.companyInfo.growthPotential}</p>
+                      <p className="text-gray-800">{prospect.companyInfo?.growthPotential}</p>
                     </div>
                   </div>
                 </div>
@@ -123,19 +123,19 @@ export default function SalesListDisplay({ salesList }: SalesListDisplayProps) {
                 {/* 最新ニュース */}
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">最新ニュース</h4>
-                  <p className="text-sm text-gray-700">{prospect.companyInfo.recentNews}</p>
+                  <p className="text-sm text-gray-700">{prospect.companyInfo?.recentNews}</p>
                 </div>
 
                 {/* 外部リンク */}
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">外部リンク</h4>
                   <a
-                    href={prospect.companyInfo.website}
+                    href={prospect.companyInfo?.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 text-sm underline"
                   >
-                    {prospect.companyInfo.website}
+                    {prospect.companyInfo?.website}
                   </a>
                 </div>
               </div>
