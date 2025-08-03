@@ -17,6 +17,8 @@ export default function SalesAgentPage() {
     try {
       // RenderのバックエンドURLを使用
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://cursor-test-backend.onrender.com';
+      console.log('Calling backend:', `${backendUrl}/api/sales-agent/generate-sales-list`);
+      
       const response = await fetch(`${backendUrl}/api/sales-agent/generate-sales-list`, {
         method: 'POST',
         headers: {
@@ -25,13 +27,25 @@ export default function SalesAgentPage() {
         body: JSON.stringify(request),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error('営業リストの生成に失敗しました');
+        const errorText = await response.text();
+        console.error('Backend error:', errorText);
+        throw new Error(`営業リストの生成に失敗しました (${response.status}): ${errorText}`);
       }
 
       const data: SalesListResponse = await response.json();
+      console.log('Received data:', data);
+      
+      if (!data.prospects || data.prospects.length === 0) {
+        throw new Error('営業リストが空です。条件を変更して再試行してください。');
+      }
+      
       setSalesList(data);
     } catch (err) {
+      console.error('Error in handleGenerateSalesList:', err);
       setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
     } finally {
       setLoading(false);
@@ -74,7 +88,14 @@ export default function SalesAgentPage() {
             
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800">{error}</p>
+                <h3 className="text-lg font-semibold text-red-800 mb-2">エラーが発生しました</h3>
+                <p className="text-red-700">{error}</p>
+                <button
+                  onClick={() => setError(null)}
+                  className="mt-3 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  エラーをクリア
+                </button>
               </div>
             )}
             

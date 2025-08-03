@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +47,7 @@ public class GeminiSalesAgentService {
             
         } catch (Exception e) {
             System.err.println("Error generating sales list: " + e.getMessage());
+            e.printStackTrace();
             return generateMockProspects(request);
         }
     }
@@ -59,10 +61,19 @@ public class GeminiSalesAgentService {
             String response = callGeminiAPI(prompt);
             
             // レスポンスをパース
-            return parseGeminiResponse(response);
+            List<Prospect> prospects = parseGeminiResponse(response);
+            
+            // パースに失敗した場合はモックデータを返す
+            if (prospects.isEmpty()) {
+                System.err.println("Failed to parse Gemini response, using mock data");
+                return generateMockProspects(request);
+            }
+            
+            return prospects;
             
         } catch (Exception e) {
             System.err.println("Error calling Gemini API: " + e.getMessage());
+            e.printStackTrace();
             return generateMockProspects(request);
         }
     }
@@ -79,10 +90,10 @@ public class GeminiSalesAgentService {
         prompt.append("- 最大件数: ").append(request.getMaxProspects()).append("件\n\n");
         
         prompt.append("【ニュース記事】\n");
-        for (int i = 0; i < articles.size(); i++) {
+        for (int i = 0; i < Math.min(articles.size(), 3); i++) { // 最大3記事まで
             NewsArticle article = articles.get(i);
             prompt.append(i + 1).append(". ").append(article.getTitle()).append("\n");
-            prompt.append("   内容: ").append(article.getContent()).append("\n");
+            prompt.append("   内容: ").append(article.getContent().substring(0, Math.min(article.getContent().length(), 200))).append("...\n");
             prompt.append("   ソース: ").append(article.getSource()).append("\n\n");
         }
         
@@ -103,6 +114,7 @@ public class GeminiSalesAgentService {
         
         prompt.append("関連性スコアは0.0から1.0の間で、1.0が最も関連性が高いことを示します。");
         prompt.append("選定理由には、なぜこの企業が営業対象として適しているかの具体的な理由を記載してください。");
+        prompt.append("最大").append(request.getMaxProspects()).append("件の企業を選定してください。");
         
         return prompt.toString();
     }
@@ -118,19 +130,28 @@ public class GeminiSalesAgentService {
                     "temperature", 0.3,
                     "topK", 40,
                     "topP", 0.95,
-                    "maxOutputTokens", 2048
+                    "maxOutputTokens", 1024 // 軽量モデル用に調整
                 )
             );
             
+            System.out.println("Calling Gemini API with model: " + geminiConfig.getModelName());
+            
             // APIを呼び出し
-            return webClient.post()
+            String response = webClient.post()
                     .uri(":generateContent?key=" + geminiConfig.getGeminiApiKey())
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
+            
+            System.out.println("Gemini API response received");
+            return response;
                     
+        } catch (WebClientResponseException e) {
+            System.err.println("WebClient error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            throw new RuntimeException("Failed to call Gemini API: " + e.getMessage(), e);
         } catch (Exception e) {
+            System.err.println("Unexpected error calling Gemini API: " + e.getMessage());
             throw new RuntimeException("Failed to call Gemini API", e);
         }
     }
@@ -157,6 +178,7 @@ public class GeminiSalesAgentService {
                 }
             }
             
+            System.err.println("Failed to parse Gemini response: " + response);
             return new ArrayList<>();
             
         } catch (Exception e) {
