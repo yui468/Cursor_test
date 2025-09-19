@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="バンドメンバーとしてリズムに合わせて演奏する音楽ゲーム！ギター、ベース、ドラム、ボーカルを操作してスコアを競おう。">
+    <meta name="keywords" content="音楽ゲーム, リズムゲーム, バンド, ギター, ベース, ドラム, ボーカル, HTML5, JavaScript">
+    <meta name="author" content="AI Assistant">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://band-hero.vercel.app/">
+    <meta property="og:title" content="Band Hero - バンドヒーロー">
+    <meta property="og:description" content="バンドメンバーとしてリズムに合わせて演奏する音楽ゲーム！">
+    <meta property="og:image" content="https://band-hero.vercel.app/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://band-hero.vercel.app/">
+    <meta property="twitter:title" content="Band Hero - バンドヒーロー">
+    <meta property="twitter:description" content="バンドメンバーとしてリズムに合わせて演奏する音楽ゲーム！">
+    <meta property="twitter:image" content="https://band-hero.vercel.app/og-image.png">
+    
+    <title>Band Hero - バンドヒーロー</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎸</text></svg>"">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #e94560;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            background: #0a0a0a;
+        }
+        
+        #gameUI {
+            margin-top: 20px;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .ui-element {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 2px solid #e94560;
+            backdrop-filter: blur(10px);
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        #gameTitle {
+            font-size: 4em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #e94560, #f27121);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #startButton {
+            padding: 15px 40px;
+            font-size: 1.5em;
+            background: linear-gradient(45deg, #e94560, #f27121);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        #startButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 1.1em;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+        
+        .key-hint {
+            display: inline-block;
+            background: #333;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #e94560;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="gameUI">
+            <div class="ui-element">
+                <strong>スコア: </strong><span id="score">0</span>
+            </div>
+            <div class="ui-element">
+                <strong>コンボ: </strong><span id="combo">0</span>
+            </div>
+            <div class="ui-element">
+                <strong>お金: </strong><span id="money">¥0</span>
+            </div>
+            <div class="ui-element">
+                <strong>HP: </strong><span id="hp">100</span>
+            </div>
+            <div class="ui-element">
+                <button id="muteButton" style="background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;">🔊</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="startScreen">
+        <h1 id="gameTitle">🎸 Band Hero 🎸</h1>
+        <button id="startButton">ゲームスタート</button>
+        <div class="instructions">
+            <p>バンドのメンバーとして、リズムに合わせて演奏しよう！</p>
+            <p>
+                <span class="key-hint">A</span> ギター　
+                <span class="key-hint">S</span> ベース　
+                <span class="key-hint">D</span> ドラム　
+                <span class="key-hint">F</span> ボーカル
+            </p>
+            <p>タイミング良くキーを押して観客を盛り上げよう！</p>
+        </div>
+    </div>
+
+    <script src="sounds.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
