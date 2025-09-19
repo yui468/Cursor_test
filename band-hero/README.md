@@ -32,9 +32,37 @@
 
 ## 🚀 起動方法
 
+### ローカル環境
 1. ブラウザで `index.html` を開く
-2. 「ゲームスタート」をクリック
-3. 楽しもう！
+2. または `python3 -m http.server 8080` でローカルサーバーを起動
+3. 「ゲームスタート」をクリック
+4. 楽しもう！
+
+### Vercelでのデプロイ
+
+#### 方法1: Vercel CLI を使用
+```bash
+# Vercel CLI をインストール
+npm i -g vercel
+
+# プロジェクトディレクトリで実行
+cd band-hero
+vercel
+
+# 本番デプロイ
+vercel --prod
+```
+
+#### 方法2: GitHub連携
+1. このプロジェクトをGitHubリポジトリにプッシュ
+2. [Vercel](https://vercel.com) にサインアップ/ログイン
+3. 「New Project」をクリック
+4. GitHubリポジトリを選択
+5. 自動的にデプロイが開始されます
+
+#### デプロイ後のURL
+- プレビュー: `https://band-hero-[random].vercel.app`
+- 本番: `https://band-hero.vercel.app` (カスタムドメイン設定時)
 
 ## 🔧 技術仕様
 
@@ -42,6 +70,32 @@
 - **Web Audio API** - 音響システム
 - **JavaScript ES6+** - ゲームロジック
 - **CSS3** - スタイリングとアニメーション
+- **Vercel** - 静的サイトホスティング
+
+## 📁 ファイル構成
+
+```
+band-hero/
+├── index.html          # メインHTMLファイル
+├── game.js            # ゲームロジック
+├── sounds.js          # 音響システム
+├── vercel.json        # Vercel設定
+├── package.json       # プロジェクト設定
+├── .gitignore         # Git除外設定
+└── README.md          # ドキュメント
+```
+
+## 🌐 Vercel設定の詳細
+
+### vercel.json の設定内容
+- 静的サイトとしてデプロイ
+- 適切なキャッシュヘッダー設定
+- SPA対応のルーティング設定
+
+### パフォーマンス最適化
+- パーティクル数の制限
+- メモリ使用量の最適化
+- レスポンシブデザイン対応
 
 ## 🎯 今後の拡張予定
 

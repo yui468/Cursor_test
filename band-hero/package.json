@@ -1,0 +1,27 @@
+{
+  "name": "band-hero",
+  "version": "1.0.0",
+  "description": "バンドメンバーとしてリズムに合わせて演奏する音楽ゲーム",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8080",
+    "build": "echo 'No build step required for static HTML game'",
+    "start": "python3 -m http.server 8080"
+  },
+  "keywords": [
+    "game",
+    "music",
+    "rhythm",
+    "band",
+    "javascript",
+    "html5",
+    "canvas"
+  ],
+  "author": "AI Assistant",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/band-hero.git"
+  },
+  "homepage": "https://band-hero.vercel.app"
+}

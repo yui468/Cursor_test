@@ -1,4 +1,11 @@
 // Band Hero Game - JavaScript Implementation
+// Performance optimizations for Vercel deployment
+const PERFORMANCE_CONFIG = {
+    MAX_PARTICLES: 100,
+    PARTICLE_CLEANUP_INTERVAL: 60,
+    CANVAS_BUFFER_SIZE: 2
+};
+
 class BandHeroGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -167,18 +174,20 @@ class BandHeroGame {
     }
     
     createHitEffect(x, y, rating, color) {
-        // パーティクルエフェクト
-        for (let i = 0; i < 10; i++) {
-            this.particles.push({
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 10,
-                vy: (Math.random() - 0.5) * 10,
-                life: 30,
-                maxLife: 30,
-                color: color,
-                size: Math.random() * 5 + 2
-            });
+        // パーティクルエフェクト（パフォーマンス最適化）
+        if (this.particles.length < PERFORMANCE_CONFIG.MAX_PARTICLES) {
+            for (let i = 0; i < 10; i++) {
+                this.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 30,
+                    maxLife: 30,
+                    color: color,
+                    size: Math.random() * 5 + 2
+                });
+            }
         }
         
         // 評価テキスト
